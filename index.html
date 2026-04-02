@@ -743,7 +743,8 @@
 <!-- Modal Cliente -->
 <div class="modal-overlay" id="modalCliente">
   <div class="modal">
-    <div class="modal-title">NUEVO <span>CLIENTE</span></div>
+    <div class="modal-title" id="modalClienteTitle">NUEVO <span>CLIENTE</span></div>
+    <input type="hidden" id="cl_id">
     <div class="form-group">
       <label>Nombre / Razón Social *</label>
       <input type="text" id="cl_nombre" placeholder="Ej: La Catedral surl">
@@ -776,7 +777,8 @@
 <!-- Modal Mercancía -->
 <div class="modal-overlay" id="modalMercancia">
   <div class="modal">
-    <div class="modal-title">NUEVA <span>MERCANCÍA</span></div>
+    <div class="modal-title" id="modalMercanciaTitle">NUEVA <span>MERCANCÍA</span></div>
+    <input type="hidden" id="mc_id">
     <div class="form-group">
       <label>Nombre del Producto *</label>
       <input type="text" id="mc_nombre" placeholder="Ej: Frozen 4x10 Lb Poly-Bagged, Chicken Leg">
@@ -977,6 +979,8 @@ function closeModal(id) {
   document.getElementById(id).classList.remove('open');
   document.querySelectorAll('#' + id + ' input, #' + id + ' select, #' + id + ' textarea')
     .forEach(el => { el.value = ''; });
+  if (id === 'modalCliente') document.getElementById('modalClienteTitle').innerHTML = 'NUEVO <span>CLIENTE</span>';
+  if (id === 'modalMercancia') document.getElementById('modalMercanciaTitle').innerHTML = 'NUEVA <span>MERCANCÍA</span>';
 }
 
 document.querySelectorAll('.modal-overlay').forEach(m => {
@@ -1021,20 +1025,39 @@ function calcArrastre(clienteId, excludeId = null) {
 function saveCliente() {
   const nombre = document.getElementById('cl_nombre').value.trim();
   if (!nombre) { toast('El nombre es obligatorio', 'error'); return; }
-  clientes.push({
-    id: uid(),
+  const editId = document.getElementById('cl_id').value;
+  const data = {
     nombre,
     pais: document.getElementById('cl_pais').value.trim(),
     telefono: document.getElementById('cl_telefono').value.trim(),
     email: document.getElementById('cl_email').value.trim(),
     notas: document.getElementById('cl_notas').value.trim(),
-    creado: new Date().toISOString()
-  });
+  };
+  if (editId) {
+    const idx = clientes.findIndex(c => c.id === editId);
+    if (idx !== -1) clientes[idx] = { ...clientes[idx], ...data };
+    toast('Cliente actualizado');
+  } else {
+    clientes.push({ id: uid(), ...data, creado: new Date().toISOString() });
+    toast('Cliente guardado');
+  }
   save();
   closeModal('modalCliente');
   renderClientes();
   updateBadges();
-  toast('Cliente guardado');
+}
+
+function editCliente(id) {
+  const c = clientes.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('cl_id').value = c.id;
+  document.getElementById('cl_nombre').value = c.nombre || '';
+  document.getElementById('cl_pais').value = c.pais || '';
+  document.getElementById('cl_telefono').value = c.telefono || '';
+  document.getElementById('cl_email').value = c.email || '';
+  document.getElementById('cl_notas').value = c.notas || '';
+  document.getElementById('modalClienteTitle').innerHTML = 'EDITAR <span>CLIENTE</span>';
+  document.getElementById('modalCliente').classList.add('open');
 }
 
 function deleteCliente(id) {
@@ -1064,6 +1087,7 @@ function renderClientes() {
       <div class="card-header">
         <div class="card-name">👤 ${c.nombre}</div>
         <div class="card-actions">
+          <button class="btn btn-secondary btn-sm" onclick="editCliente('${c.id}')">✏️</button>
           <button class="btn btn-danger btn-sm" onclick="deleteCliente('${c.id}')">✕</button>
         </div>
       </div>
@@ -1080,20 +1104,41 @@ function renderClientes() {
 function saveMercancia() {
   const nombre = document.getElementById('mc_nombre').value.trim();
   if (!nombre) { toast('El nombre es obligatorio', 'error'); return; }
-  mercancias.push({
-    id: uid(),
+  const editId = document.getElementById('mc_id').value;
+  const data = {
     nombre,
     codigo: document.getElementById('mc_codigo').value.trim(),
     unidad: document.getElementById('mc_unidad').value,
     precio: parseFloat(document.getElementById('mc_precio').value) || 0,
     categoria: document.getElementById('mc_categoria').value,
     descripcion: document.getElementById('mc_descripcion').value.trim(),
-  });
+  };
+  if (editId) {
+    const idx = mercancias.findIndex(m => m.id === editId);
+    if (idx !== -1) mercancias[idx] = { ...mercancias[idx], ...data };
+    toast('Mercancía actualizada');
+  } else {
+    mercancias.push({ id: uid(), ...data });
+    toast('Mercancía guardada');
+  }
   save();
   closeModal('modalMercancia');
   renderMercancias();
   updateBadges();
-  toast('Mercancía guardada');
+}
+
+function editMercancia(id) {
+  const m = mercancias.find(x => x.id === id);
+  if (!m) return;
+  document.getElementById('mc_id').value = m.id;
+  document.getElementById('mc_nombre').value = m.nombre || '';
+  document.getElementById('mc_codigo').value = m.codigo || '';
+  document.getElementById('mc_unidad').value = m.unidad || 'Lb';
+  document.getElementById('mc_precio').value = m.precio || '';
+  document.getElementById('mc_categoria').value = m.categoria || 'Pollo';
+  document.getElementById('mc_descripcion').value = m.descripcion || '';
+  document.getElementById('modalMercanciaTitle').innerHTML = 'EDITAR <span>MERCANCÍA</span>';
+  document.getElementById('modalMercancia').classList.add('open');
 }
 
 function deleteMercancia(id) {
@@ -1116,6 +1161,7 @@ function renderMercancias() {
       <div class="card-header">
         <div class="card-name">${m.categoria === 'Pollo' ? '🐔' : m.categoria === 'Cerdo' ? '🐷' : m.categoria === 'Res' ? '🐄' : '📦'} ${m.nombre}</div>
         <div class="card-actions">
+          <button class="btn btn-secondary btn-sm" onclick="editMercancia('${m.id}')">✏️</button>
           <button class="btn btn-danger btn-sm" onclick="deleteMercancia('${m.id}')">✕</button>
         </div>
       </div>
