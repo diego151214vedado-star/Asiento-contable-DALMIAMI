@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>DAL Miami Export LLC — Libro de Asiento</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root {
     --red: #E8202A;
@@ -1224,7 +1226,7 @@
         <input type="date" id="conc_hasta" onchange="generarConciliacion()">
       </div>
       <div class="conc-spacer"></div>
-      <button class="btn btn-primary btn-sm" onclick="window.print()">🖨 Imprimir / PDF</button>
+      <button class="btn btn-primary btn-sm" id="btnCompartir" onclick="compartirPDF()">⬆️ Compartir PDF</button>
       <button class="btn btn-secondary btn-sm" onclick="cerrarConciliacion()">✕ Cerrar</button>
     </div>
     <!-- Documento -->
@@ -1806,6 +1808,74 @@ function renderDashboard() {
   }).join('');
 }
 
+// ═══ COMPARTIR PDF ═══
+async function compartirPDF() {
+  const btn = document.getElementById('btnCompartir');
+  btn.textContent = '⏳ Generando...';
+  btn.disabled = true;
+
+  try {
+    const doc = document.getElementById('concDoc');
+    const canvas = await html2canvas(doc, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+    });
+
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const imgW = pageW;
+    const imgH = (canvas.height * imgW) / canvas.width;
+
+    let posY = 0;
+    let remaining = imgH;
+
+    // Paginar si el contenido es más largo que una página
+    while (remaining > 0) {
+      pdf.addImage(imgData, 'JPEG', 0, posY, imgW, imgH);
+      remaining -= pageH;
+      posY -= pageH;
+      if (remaining > 0) pdf.addPage();
+    }
+
+    const cliente = clientes.find(c => c.id === concClienteId);
+    const nombreCliente = cliente ? cliente.nombre.replace(/\s+/g, '_') : 'cliente';
+    const fecha = new Date().toISOString().split('T')[0];
+    const fileName = `Conciliacion_${nombreCliente}_${fecha}.pdf`;
+
+    const pdfBlob = pdf.output('blob');
+    const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+
+    // Web Share API — menú nativo de iOS
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+      await navigator.share({
+        title: `Conciliación — ${cliente ? cliente.nombre : ''}`,
+        text: `Estado de cuenta DAL Miami Export LLC`,
+        files: [pdfFile],
+      });
+    } else {
+      // Fallback: descarga directa
+      const url = URL.createObjectURL(pdfBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  } catch (err) {
+    console.error(err);
+    toast('Error al generar PDF', 'error');
+  } finally {
+    btn.textContent = '⬆️ Compartir PDF';
+    btn.disabled = false;
+  }
+}
+
 // ═══ CONCILIACIÓN ═══
 let concClienteId = null;
 
@@ -2006,8 +2076,9 @@ function generarConciliacion() {
       </div>
       <div class="conc-firma">
         <div class="conc-firma-line"></div>
-        <div style="color:#1a1a1a;font-weight:600">Autorizado por</div>
-        <div>DAL Miami Export LLC</div>
+        <div style="color:#1a1a1a;font-weight:700">Diego Hernández</div>
+        <div style="color:#555;font-size:10px;text-transform:uppercase;letter-spacing:1px">Gerente Financiero</div>
+        <div style="color:#888;font-size:10px">DAL Miami Export LLC</div>
       </div>
     </div>
   `;
