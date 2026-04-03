@@ -1005,7 +1005,7 @@ function getSaldo(facturaId) {
   if (!f) return 0;
   const totalPagado = pagos.filter(p => p.facturaId === facturaId).reduce((s, p) => s + p.monto, 0);
   const arrastre = parseFloat(f.arrastre) || 0;
-  return arrastre + parseFloat(f.deuda) - totalPagado;
+  return parseFloat(f.deuda) - arrastre - totalPagado;
 }
 
 function getEstatus(facturaId) {
