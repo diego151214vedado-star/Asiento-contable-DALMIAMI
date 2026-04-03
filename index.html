@@ -903,27 +903,31 @@
         <div class="page-title">RESUMEN <span>GENERAL</span></div>
         <div class="page-sub">Vista rápida del estado financiero</div>
       </div>
+      <button class="btn btn-primary" id="btnCompartirDash" onclick="compartirDashboard()">
+        ⬆️ Compartir PDF
+      </button>
     </div>
 
-    <div class="stats-row" id="statsRow"></div>
-
-    <div class="section-label">Facturas recientes</div>
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>Fecha</th>
-            <th>N° Factura</th>
-            <th>Cliente</th>
-            <th>Mercancía</th>
-            <th>Saldo Factura</th>
-            <th>Ingreso</th>
-            <th>Saldo</th>
-            <th>Estatus</th>
-          </tr>
-        </thead>
-        <tbody id="dashboardTable"></tbody>
-      </table>
+    <div id="dashboardContenido">
+      <div class="stats-row" id="statsRow"></div>
+      <div class="section-label">Facturas recientes</div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>N° Factura</th>
+              <th>Cliente</th>
+              <th>Mercancía</th>
+              <th>Saldo Factura</th>
+              <th>Ingreso</th>
+              <th>Saldo</th>
+              <th>Estatus</th>
+            </tr>
+          </thead>
+          <tbody id="dashboardTable"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -1806,6 +1810,189 @@ function renderDashboard() {
       <td><span class="status ${cls}">${estatus}</span></td>
     </tr>`;
   }).join('');
+}
+
+// ═══ COMPARTIR DASHBOARD ═══
+async function compartirDashboard() {
+  const btn = document.getElementById('btnCompartirDash');
+  btn.textContent = '⏳ Generando...';
+  btn.disabled = true;
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const hoy = new Date().toLocaleDateString('es', { weekday:'long', year:'numeric', month:'long', day:'numeric' }).toUpperCase();
+    const hoyCorto = new Date().toISOString().split('T')[0];
+
+    // ── Encabezado ──
+    pdf.setFillColor(14, 14, 18);
+    pdf.rect(0, 0, pageW, 22, 'F');
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(16);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('DAL MIAMI EXPORT LLC', 12, 10);
+    pdf.setFontSize(7);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(144, 144, 160);
+    pdf.text('RESUMEN GENERAL — LIBRO DE ASIENTO', 12, 16);
+    pdf.setTextColor(144, 144, 160);
+    pdf.text(hoy, pageW - 12, 10, { align: 'right' });
+    pdf.text('Fecha de emisión: ' + hoyCorto, pageW - 12, 16, { align: 'right' });
+
+    // Línea roja
+    pdf.setDrawColor(232, 32, 42);
+    pdf.setLineWidth(0.8);
+    pdf.line(0, 22, pageW, 22);
+
+    // ── Tarjetas de resumen ──
+    const totalDeuda = facturas.reduce((s, f) => s + parseFloat(f.deuda), 0);
+    const totalIngresado = pagos.reduce((s, p) => s + p.monto, 0);
+    const totalSaldo = facturas.reduce((s, f) => s + getSaldo(f.id), 0);
+    const pendientes = facturas.filter(f => getEstatus(f.id) !== 'Pagado').length;
+
+    const tarjetas = [
+      { label: 'TOTAL FACTURADO', valor: fmtUSD(totalDeuda), color: [107, 159, 255] },
+      { label: 'TOTAL INGRESADO', valor: fmtUSD(totalIngresado), color: [34, 197, 94] },
+      { label: 'SALDO POR COBRAR', valor: fmtUSD(Math.abs(totalSaldo)), color: totalSaldo > 0 ? [232, 32, 42] : [34, 197, 94] },
+      { label: 'FACTURAS PENDIENTES', valor: String(pendientes), color: [245, 158, 11] },
+    ];
+
+    const cardW = (pageW - 24) / 4;
+    const cardX = 8;
+    let cardY = 28;
+
+    tarjetas.forEach((t, i) => {
+      const x = cardX + i * (cardW + (16 / 3));
+      pdf.setFillColor(22, 22, 28);
+      pdf.roundedRect(x, cardY, cardW, 22, 2, 2, 'F');
+      pdf.setFontSize(6.5);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(144, 144, 160);
+      pdf.text(t.label, x + cardW / 2, cardY + 7, { align: 'center' });
+      pdf.setFontSize(13);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(...t.color);
+      pdf.text(t.valor, x + cardW / 2, cardY + 17, { align: 'center' });
+    });
+
+    // ── Tabla de facturas ──
+    let tableY = cardY + 28;
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(144, 144, 160);
+    pdf.text('FACTURAS', 10, tableY - 3);
+
+    // Cabecera tabla
+    const cols = ['Fecha', 'N° Fact.', 'Cliente', 'Mercancía', 'Saldo Fact.', 'Ingreso', 'Saldo', 'Estatus'];
+    const colW = [18, 14, 30, 46, 22, 22, 22, 26];
+    let cx = 8;
+
+    pdf.setFillColor(30, 30, 38);
+    pdf.rect(8, tableY, pageW - 16, 7, 'F');
+    pdf.setFontSize(6);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(144, 144, 160);
+    cols.forEach((col, i) => {
+      pdf.text(col.toUpperCase(), cx + 2, tableY + 4.5);
+      cx += colW[i];
+    });
+    tableY += 7;
+
+    // Filas
+    const rows = [...facturas].sort((a, b) => a.fecha < b.fecha ? -1 : 1);
+    rows.forEach((f, idx) => {
+      if (tableY > pageH - 20) { pdf.addPage(); tableY = 15; }
+      const c = clientes.find(x => x.id === f.clienteId);
+      const m = mercancias.find(x => x.id === f.mercanciaId);
+      const saldo = getSaldo(f.id);
+      const ingreso = getTotalIngreso(f.id);
+      const estatus = getEstatus(f.id);
+
+      if (idx % 2 === 0) {
+        pdf.setFillColor(22, 22, 28);
+        pdf.rect(8, tableY, pageW - 16, 7, 'F');
+      }
+
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(6.5);
+      pdf.setTextColor(240, 240, 238);
+      cx = 8;
+
+      const celdas = [
+        fmtDate(f.fecha),
+        f.numero,
+        (c ? c.nombre : '—').substring(0, 14),
+        (m ? m.nombre : '—').substring(0, 26),
+        fmtUSD(f.deuda),
+        fmtUSD(ingreso),
+        fmtUSD(saldo),
+        estatus,
+      ];
+
+      celdas.forEach((val, i) => {
+        // Color estatus
+        if (i === 7) {
+          if (estatus === 'Pagado') pdf.setTextColor(34, 197, 94);
+          else if (estatus === 'Pagado parcialmente') pdf.setTextColor(245, 158, 11);
+          else pdf.setTextColor(255, 107, 107);
+        } else if (i === 6) {
+          if (saldo > 0) pdf.setTextColor(255, 107, 107);
+          else if (saldo < 0) pdf.setTextColor(34, 197, 94);
+          else pdf.setTextColor(144, 144, 160);
+        } else {
+          pdf.setTextColor(240, 240, 238);
+        }
+        pdf.text(String(val), cx + 2, tableY + 4.5);
+        cx += colW[i];
+      });
+
+      // línea separadora
+      pdf.setDrawColor(46, 46, 58);
+      pdf.setLineWidth(0.2);
+      pdf.line(8, tableY + 7, pageW - 8, tableY + 7);
+      tableY += 7;
+    });
+
+    // ── Pie ──
+    const lastPage = pdf.internal.getNumberOfPages();
+    pdf.setPage(lastPage);
+    pdf.setFillColor(14, 14, 18);
+    pdf.rect(0, pageH - 14, pageW, 14, 'F');
+    pdf.setFontSize(7);
+    pdf.setTextColor(144, 144, 160);
+    pdf.text('DAL Miami Export LLC · 3901 SW 78th CT Miami FL-33155 · EIN: 93-1412443', pageW / 2, pageH - 8, { align: 'center' });
+    pdf.setTextColor(232, 32, 42);
+    pdf.text('Diego Hernández — Gerente Financiero', pageW / 2, pageH - 4, { align: 'center' });
+
+    // ── Compartir ──
+    const pdfBlob = pdf.output('blob');
+    const fileName = `DAL_Miami_Dashboard_${hoyCorto}.pdf`;
+    const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+      await navigator.share({
+        title: 'Resumen General — DAL Miami Export LLC',
+        text: 'Dashboard financiero DAL Miami Export LLC',
+        files: [pdfFile],
+      });
+    } else {
+      const url = URL.createObjectURL(pdfBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+  } catch (err) {
+    console.error(err);
+    toast('Error al generar PDF', 'error');
+  } finally {
+    btn.textContent = '⬆️ Compartir PDF';
+    btn.disabled = false;
+  }
 }
 
 // ═══ COMPARTIR PDF ═══
