@@ -615,7 +615,7 @@
             <th>N° Factura</th>
             <th>Cliente</th>
             <th>Mercancía</th>
-            <th>Deuda</th>
+            <th>Saldo Factura</th>
             <th>Ingreso</th>
             <th>Saldo</th>
             <th>Estatus</th>
@@ -688,8 +688,8 @@
             <th>N° Factura</th>
             <th>Cliente</th>
             <th>Mercancía</th>
-            <th>Arrastre</th>
-            <th>Deuda</th>
+            <th>Saldo a Favor</th>
+            <th>Saldo Factura</th>
             <th>Ingreso</th>
             <th>Saldo Pendiente</th>
             <th>Estatus</th>
@@ -828,7 +828,8 @@
 <!-- Modal Factura -->
 <div class="modal-overlay" id="modalFactura">
   <div class="modal">
-    <div class="modal-title">NUEVA <span>FACTURA</span></div>
+    <div class="modal-title" id="modalFacturaTitle">NUEVA <span>FACTURA</span></div>
+    <input type="hidden" id="fa_id">
     <div class="form-row">
       <div class="form-group">
         <label>Fecha *</label>
@@ -853,17 +854,17 @@
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label>Monto Deuda (US$) *</label>
+        <label>Saldo Factura (US$) *</label>
         <input type="number" id="fa_deuda" placeholder="0.00" step="0.01">
       </div>
       <div class="form-group">
-        <label>Arrastre (auto)</label>
+        <label>Saldo a Favor (auto)</label>
         <input type="number" id="fa_arrastre" placeholder="0.00" step="0.01" readonly style="opacity:.6">
       </div>
     </div>
     <div class="form-actions">
       <button class="btn btn-secondary" onclick="closeModal('modalFactura')">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveFactura()">Guardar Factura</button>
+      <button class="btn btn-primary" id="btnGuardarFactura" onclick="saveFactura()">Guardar Factura</button>
     </div>
   </div>
 </div>
@@ -871,7 +872,8 @@
 <!-- Modal Pago -->
 <div class="modal-overlay" id="modalPago">
   <div class="modal">
-    <div class="modal-title">REGISTRAR <span>PAGO</span></div>
+    <div class="modal-title" id="modalPagoTitle">REGISTRAR <span>PAGO</span></div>
+    <input type="hidden" id="pg_id">
     <div class="form-row">
       <div class="form-group">
         <label>Fecha *</label>
@@ -903,7 +905,7 @@
     </div>
     <div class="form-actions">
       <button class="btn btn-secondary" onclick="closeModal('modalPago')">Cancelar</button>
-      <button class="btn btn-blue" onclick="savePago()">Registrar Pago</button>
+      <button class="btn btn-blue" id="btnGuardarPago" onclick="savePago()">Registrar Pago</button>
     </div>
   </div>
 </div>
@@ -981,6 +983,16 @@ function closeModal(id) {
     .forEach(el => { el.value = ''; });
   if (id === 'modalCliente') document.getElementById('modalClienteTitle').innerHTML = 'NUEVO <span>CLIENTE</span>';
   if (id === 'modalMercancia') document.getElementById('modalMercanciaTitle').innerHTML = 'NUEVA <span>MERCANCÍA</span>';
+  if (id === 'modalFactura') {
+    document.getElementById('modalFacturaTitle').innerHTML = 'NUEVA <span>FACTURA</span>';
+    document.getElementById('btnGuardarFactura').textContent = 'Guardar Factura';
+    document.getElementById('pg_info') && (document.getElementById('pg_info').style.display = 'none');
+  }
+  if (id === 'modalPago') {
+    document.getElementById('modalPagoTitle').innerHTML = 'REGISTRAR <span>PAGO</span>';
+    document.getElementById('btnGuardarPago').textContent = 'Registrar Pago';
+    document.getElementById('pg_info').style.display = 'none';
+  }
 }
 
 document.querySelectorAll('.modal-overlay').forEach(m => {
@@ -1201,17 +1213,40 @@ function saveFactura() {
   const mercanciaId = document.getElementById('fa_mercancia').value;
   const deuda = parseFloat(document.getElementById('fa_deuda').value);
   const arrastre = parseFloat(document.getElementById('fa_arrastre').value) || 0;
+  const editId = document.getElementById('fa_id').value;
 
   if (!fecha || !numero || !clienteId || !mercanciaId || !deuda) {
     toast('Completa todos los campos obligatorios', 'error'); return;
   }
 
-  facturas.push({ id: uid(), fecha, numero, clienteId, mercanciaId, deuda, arrastre });
+  if (editId) {
+    const idx = facturas.findIndex(f => f.id === editId);
+    if (idx !== -1) facturas[idx] = { ...facturas[idx], fecha, numero, clienteId, mercanciaId, deuda, arrastre };
+    toast('Factura actualizada');
+  } else {
+    facturas.push({ id: uid(), fecha, numero, clienteId, mercanciaId, deuda, arrastre });
+    toast('Factura registrada');
+  }
   save();
   closeModal('modalFactura');
   renderFacturas();
   updateBadges();
-  toast('Factura registrada');
+}
+
+function editFactura(id) {
+  const f = facturas.find(x => x.id === id);
+  if (!f) return;
+  populateFacturaSelects();
+  document.getElementById('fa_id').value = f.id;
+  document.getElementById('fa_fecha').value = f.fecha;
+  document.getElementById('fa_numero').value = f.numero;
+  document.getElementById('fa_cliente').value = f.clienteId;
+  document.getElementById('fa_mercancia').value = f.mercanciaId;
+  document.getElementById('fa_deuda').value = f.deuda;
+  document.getElementById('fa_arrastre').value = f.arrastre || '';
+  document.getElementById('modalFacturaTitle').innerHTML = 'EDITAR <span>FACTURA</span>';
+  document.getElementById('btnGuardarFactura').textContent = 'Actualizar Factura';
+  document.getElementById('modalFactura').classList.add('open');
 }
 
 function deleteFactura(id) {
@@ -1235,7 +1270,7 @@ function renderFacturas() {
   sel.innerHTML = '<option value="">Todos los clientes</option>' +
     clientes.map(c => `<option value="${c.id}" ${c.id === current ? 'selected' : ''}>${c.nombre}</option>`).join('');
 
-  let rows = [...facturas].sort((a, b) => a.fecha > b.fecha ? -1 : 1);
+  let rows = [...facturas].sort((a, b) => a.fecha < b.fecha ? -1 : 1);
   if (filtC) rows = rows.filter(f => f.clienteId === filtC);
   if (filtE) rows = rows.filter(f => getEstatus(f.id) === filtE);
 
@@ -1258,14 +1293,15 @@ function renderFacturas() {
       <td class="mono">${f.numero}</td>
       <td>${cliente ? cliente.nombre : '—'}</td>
       <td style="max-width:180px;font-size:12px">${mercancia ? mercancia.nombre : '—'}</td>
-      <td class="mono ${f.arrastre > 0 ? 'amount-neg' : 'amount-zero'}">${f.arrastre > 0 ? fmtUSD(f.arrastre) : '—'}</td>
+      <td class="mono ${f.arrastre > 0 ? 'amount-pos' : 'amount-zero'}">${f.arrastre > 0 ? fmtUSD(f.arrastre) : '—'}</td>
       <td class="mono">${fmtUSD(f.deuda)}</td>
       <td class="mono amount-pos">${fmtUSD(ingreso)}</td>
       <td class="mono ${saldoCls}">${fmtUSD(saldo)}</td>
       <td><span class="status ${estatusCls}">${estatus}</span></td>
-      <td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-secondary btn-sm" onclick="editFactura('${f.id}')">✏️</button>
         <button class="btn btn-blue btn-sm" onclick="quickPago('${f.id}')">＋ Pago</button>
-        <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="deleteFactura('${f.id}')">✕</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteFactura('${f.id}')">✕</button>
       </td>
     </tr>`;
   }).join('');
@@ -1311,18 +1347,40 @@ function savePago() {
   const monto = parseFloat(document.getElementById('pg_monto').value);
   const facturaId = document.getElementById('pg_factura').value;
   const notas = document.getElementById('pg_notas').value.trim();
+  const editId = document.getElementById('pg_id').value;
 
   if (!fecha || !monto || !facturaId) {
     toast('Completa los campos obligatorios', 'error'); return;
   }
 
-  pagos.push({ id: uid(), fecha, monto, facturaId, notas });
+  if (editId) {
+    const idx = pagos.findIndex(p => p.id === editId);
+    if (idx !== -1) pagos[idx] = { ...pagos[idx], fecha, monto, facturaId, notas };
+    toast('Pago actualizado');
+  } else {
+    pagos.push({ id: uid(), fecha, monto, facturaId, notas });
+    toast('Pago registrado');
+  }
   save();
   closeModal('modalPago');
   renderPagos();
   renderFacturas();
   updateBadges();
-  toast('Pago registrado');
+}
+
+function editPago(id) {
+  const p = pagos.find(x => x.id === id);
+  if (!p) return;
+  populatePagoSelects();
+  document.getElementById('pg_id').value = p.id;
+  document.getElementById('pg_fecha').value = p.fecha;
+  document.getElementById('pg_monto').value = p.monto;
+  document.getElementById('pg_factura').value = p.facturaId;
+  document.getElementById('pg_notas').value = p.notas || '';
+  onSelectFacturaPago();
+  document.getElementById('modalPagoTitle').innerHTML = 'EDITAR <span>PAGO</span>';
+  document.getElementById('btnGuardarPago').textContent = 'Actualizar Pago';
+  document.getElementById('modalPago').classList.add('open');
 }
 
 function deletePago(id) {
@@ -1343,7 +1401,7 @@ function renderPagos() {
   sel.innerHTML = '<option value="">Todos los clientes</option>' +
     clientes.map(c => `<option value="${c.id}" ${c.id === current ? 'selected' : ''}>${c.nombre}</option>`).join('');
 
-  let rows = [...pagos].sort((a, b) => a.fecha > b.fecha ? -1 : 1);
+  let rows = [...pagos].sort((a, b) => a.fecha < b.fecha ? -1 : 1);
   if (filtC) {
     const fIds = facturas.filter(f => f.clienteId === filtC).map(f => f.id);
     rows = rows.filter(p => fIds.includes(p.facturaId));
@@ -1363,7 +1421,10 @@ function renderPagos() {
       <td>${c ? c.nombre : '—'}</td>
       <td class="mono amount-pos">${fmtUSD(p.monto)}</td>
       <td style="font-size:12px;color:var(--text2)">${p.notas || '—'}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="deletePago('${p.id}')">✕</button></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-secondary btn-sm" onclick="editPago('${p.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deletePago('${p.id}')">✕</button>
+      </td>
     </tr>`;
   }).join('');
 }
@@ -1395,7 +1456,7 @@ function renderDashboard() {
   `;
 
   const tbody = document.getElementById('dashboardTable');
-  const recent = [...facturas].sort((a, b) => a.fecha > b.fecha ? -1 : 1).slice(0, 10);
+  const recent = [...facturas].sort((a, b) => a.fecha < b.fecha ? -1 : 1);
 
   if (!recent.length) {
     tbody.innerHTML = `<tr><td colspan="8"><div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Sin datos aún</div></div></td></tr>`;
