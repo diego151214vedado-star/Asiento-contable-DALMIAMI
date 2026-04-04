@@ -1230,7 +1230,7 @@
         <input type="date" id="conc_hasta" onchange="generarConciliacion()">
       </div>
       <div class="conc-spacer"></div>
-      <button class="btn btn-primary btn-sm" id="btnCompartir" onclick="compartirPDF()">⬆️ Compartir PDF</button>
+      <button class="btn btn-primary btn-sm" id="btnCompartir" onclick="compartirConciliacion()">⬆️ Compartir PDF</button>
       <button class="btn btn-secondary btn-sm" onclick="cerrarConciliacion()">✕ Cerrar</button>
     </div>
     <!-- Documento -->
@@ -2107,6 +2107,151 @@ async function compartirPDF() {
     }
   } catch (err) { console.error(err); toast('Error al generar PDF', 'error'); }
   finally { btn.textContent = '⬆️ Compartir PDF'; btn.disabled = false; }
+}
+
+
+// ═══ CONCILIACIÓN ═══
+let concClienteId = null;
+
+function abrirConciliacion(clienteId) {
+  concClienteId = clienteId;
+  const hoy = new Date();
+  const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().split('T')[0];
+  const hoyStr = hoy.toISOString().split('T')[0];
+  document.getElementById('conc_desde').value = primerDia;
+  document.getElementById('conc_hasta').value = hoyStr;
+  document.getElementById('conciliacionOverlay').classList.add('open');
+  generarConciliacion();
+}
+
+function cerrarConciliacion() {
+  document.getElementById('conciliacionOverlay').classList.remove('open');
+  concClienteId = null;
+}
+
+function diasAtraso(fechaStr) {
+  if (!fechaStr) return 0;
+  const fecha = new Date(fechaStr + 'T00:00:00');
+  const hoy = new Date();
+  hoy.setHours(0,0,0,0);
+  return Math.max(0, Math.floor((hoy - fecha) / (1000 * 60 * 60 * 24)));
+}
+
+function generarConciliacion() {
+  const cliente = clientes.find(c => c.id === concClienteId);
+  if (!cliente) return;
+
+  const desde = document.getElementById('conc_desde').value;
+  const hasta = document.getElementById('conc_hasta').value;
+
+  const facturasCliente = facturas
+    .filter(f => f.clienteId === concClienteId && (!desde || f.fecha >= desde) && (!hasta || f.fecha <= hasta))
+    .sort((a, b) => a.fecha < b.fecha ? -1 : 1);
+
+  const facturasIds = facturas.filter(f => f.clienteId === concClienteId).map(f => f.id);
+  const pagosCliente = pagos
+    .filter(p => facturasIds.includes(p.facturaId) && (!desde || p.fecha >= desde) && (!hasta || p.fecha <= hasta))
+    .sort((a, b) => a.fecha < b.fecha ? -1 : 1);
+
+  const movimientos = [];
+  facturasCliente.forEach(f => {
+    const m = mercancias.find(x => x.id === f.mercanciaId);
+    if (f.arrastre > 0) {
+      movimientos.push({ fecha: f.fecha, tipo: 'favor', monto: -parseFloat(f.arrastre), facturaNum: f.numero, desc: 'Saldo a favor aplicado', mercancia: '' });
+    }
+    movimientos.push({ fecha: f.fecha, tipo: 'factura', monto: parseFloat(f.deuda), facturaNum: f.numero, desc: m ? m.nombre : '—', mercancia: m ? (m.descripcion || '') : '' });
+  });
+  pagosCliente.forEach(p => {
+    const f = facturas.find(x => x.id === p.facturaId);
+    movimientos.push({ fecha: p.fecha, tipo: 'pago', monto: -p.monto, facturaNum: f ? f.numero : '—', desc: p.notas || 'Pago recibido', mercancia: '' });
+  });
+  movimientos.sort((a, b) => a.fecha < b.fecha ? -1 : 1);
+
+  let saldoCorriente = 0;
+  const filas = movimientos.map(mv => { saldoCorriente += mv.monto; return { ...mv, saldoCorriente }; });
+
+  const totalFacturado = facturasCliente.reduce((s, f) => s + parseFloat(f.deuda), 0);
+  const totalFavor = facturasCliente.reduce((s, f) => s + (parseFloat(f.arrastre) || 0), 0);
+  const totalPagado = pagosCliente.reduce((s, p) => s + p.monto, 0);
+  const saldoFinal = totalFacturado - totalFavor - totalPagado;
+
+  const facturasPendientes = facturasCliente.filter(f => getSaldo(f.id) > 0);
+  const fechaMasAntigua = facturasPendientes.length
+    ? facturasPendientes.sort((a, b) => a.fecha < b.fecha ? -1 : 1)[0].fecha : null;
+  const atraso = fechaMasAntigua ? diasAtraso(fechaMasAntigua) : 0;
+
+  const fmtPeriodo = (d) => { if (!d) return '—'; const [y,m,day] = d.split('-'); return `${day}/${m}/${y}`; };
+  const periodoTxt = desde || hasta ? `Período: ${fmtPeriodo(desde)} — ${fmtPeriodo(hasta)}` : 'Todos los movimientos';
+  const hoyTxt = fmtPeriodo(new Date().toISOString().split('T')[0]);
+
+  let notaHTML = '';
+  if (saldoFinal > 0.01) {
+    notaHTML = `<div class="conc-nota deuda"><div class="conc-nota-title">⚠️ Saldo Pendiente de Pago</div>Estimado cliente <strong>${cliente.nombre}</strong>, a la fecha presenta un saldo pendiente de <strong>${fmtUSD(saldoFinal)}</strong>${atraso > 0 ? ` con un atraso de <strong>${atraso} días</strong>` : ''}. Le agradecemos gestionar su pago a la brevedad.</div>`;
+  } else if (saldoFinal < -0.01) {
+    notaHTML = `<div class="conc-nota favor"><div class="conc-nota-title">✅ Saldo a Su Favor</div>Estimado cliente <strong>${cliente.nombre}</strong>, usted presenta un crédito a su favor de <strong>${fmtUSD(Math.abs(saldoFinal))}</strong>, el cual será aplicado en su próxima factura.</div>`;
+  } else {
+    notaHTML = `<div class="conc-nota saldado"><div class="conc-nota-title">✔ Cuenta al Día</div>Estimado cliente <strong>${cliente.nombre}</strong>, su cuenta se encuentra completamente al día.</div>`;
+  }
+
+  const filasHTML = filas.length ? filas.map(mv => {
+    const tipoLabel = mv.tipo === 'factura' ? `<span class="conc-tipo tipo-factura">🧾 Factura</span>`
+      : mv.tipo === 'pago' ? `<span class="conc-tipo tipo-pago">💰 Pago</span>`
+      : `<span class="conc-tipo tipo-favor">↩ Saldo a Favor</span>`;
+    const montoColor = mv.monto > 0 ? 'conc-saldo-pos' : 'conc-saldo-neg';
+    const saldoColor = mv.saldoCorriente > 0.01 ? 'conc-saldo-pos' : mv.saldoCorriente < -0.01 ? 'conc-saldo-neg' : 'conc-saldo-zero';
+    const montoTxt = mv.monto > 0 ? `+${fmtUSD(mv.monto)}` : fmtUSD(mv.monto);
+    return `<tr class="conc-row-${mv.tipo}"><td>${fmtDate(mv.fecha)}</td><td>${tipoLabel}</td><td class="mono" style="font-size:11px">#${mv.facturaNum}</td><td><div style="font-weight:600;font-size:12px">${mv.desc}</div>${mv.mercancia ? `<div style="font-size:10px;color:#888">${mv.mercancia}</div>` : ''}</td><td class="right ${montoColor}">${montoTxt}</td><td class="right ${saldoColor}">${fmtUSD(mv.saldoCorriente)}</td></tr>`;
+  }).join('') : `<tr><td colspan="6" style="text-align:center;padding:32px;color:#888">Sin movimientos en el período seleccionado</td></tr>`;
+
+  document.getElementById('concDoc').innerHTML = `
+    <div class="conc-header">
+      <div>
+        <div class="conc-brand-name"><span>DAL</span> MIAMI EXPORT LLC</div>
+        <div class="conc-brand-info">3901 SW 78th CT Miami FL-33155<br>EIN: 93-1412443 · dalmiami9@gmail.com · +1 786-839-1403</div>
+      </div>
+      <div class="conc-doc-meta"><strong>ESTADO DE CUENTA</strong>Fecha: ${hoyTxt}<br>${periodoTxt}</div>
+    </div>
+    <div class="conc-client-box">
+      <div class="conc-client-label">Cliente</div>
+      <div class="conc-client-name">${cliente.nombre}</div>
+      <div class="conc-periodo">${periodoTxt}</div>
+    </div>
+    <table class="conc-table">
+      <thead><tr><th>Fecha</th><th>Tipo</th><th>N° Ref</th><th>Descripción</th><th class="right">Monto</th><th class="right">Saldo Corriente</th></tr></thead>
+      <tbody>${filasHTML}</tbody>
+    </table>
+    <div class="conc-resumen">
+      <div class="conc-res-box"><div class="conc-res-label">Total Facturado</div><div class="conc-res-val azul">${fmtUSD(totalFacturado)}</div></div>
+      <div class="conc-res-box"><div class="conc-res-label">Total Pagado</div><div class="conc-res-val verde">${fmtUSD(totalPagado)}</div></div>
+      <div class="conc-res-box" style="border-color:${saldoFinal > 0.01 ? '#fecdd3' : saldoFinal < -0.01 ? '#bbf7d0' : '#bae6fd'}">
+        <div class="conc-res-label">${saldoFinal > 0.01 ? 'Saldo a Pagar' : saldoFinal < -0.01 ? 'Saldo a Favor' : 'Saldo'}</div>
+        <div class="conc-res-val ${saldoFinal > 0.01 ? 'rojo' : saldoFinal < -0.01 ? 'verde' : 'azul'}">${fmtUSD(Math.abs(saldoFinal))}</div>
+      </div>
+    </div>
+    ${notaHTML}
+    <div class="conc-footer">
+      <div><div class="conc-firma-line"></div><div style="color:#1a1a1a;font-weight:700">Diego Hernández</div><div style="color:#555;font-size:10px;text-transform:uppercase;letter-spacing:1px">Gerente Financiero</div><div style="color:#888;font-size:10px">DAL Miami Export LLC</div></div>
+      <div class="conc-firma" style="text-align:right;font-size:11px;color:#888">Documento generado el ${hoyTxt}</div>
+    </div>`;
+}
+
+// ═══ COMPARTIR CONCILIACIÓN (abre ventana HTML + print nativo) ═══
+function compartirConciliacion() {
+  const cliente = clientes.find(c => c.id === concClienteId);
+  if (!cliente) return;
+  const html = document.getElementById('concDoc').innerHTML;
+  const estilos = Array.from(document.querySelectorAll('style')).map(s => s.outerHTML).join('');
+  const fullHTML = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Conciliación ${cliente.nombre}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  ${estilos}
+  <style>body{background:#fff;padding:20px;} @media print{@page{margin:1cm;size:A4;}}</style>
+  </head><body>${html}</body></html>`;
+  const blob = new Blob([fullHTML], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, '_blank');
+  if (!win) { toast('Permite ventanas emergentes en Safari', 'error'); }
+  else { setTimeout(() => { try { win.print(); } catch(e){} }, 800); }
+  setTimeout(() => URL.revokeObjectURL(url), 15000);
 }
 
 // ═══ BADGES ═══
