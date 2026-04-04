@@ -2044,7 +2044,6 @@ function compartirDashboard() {
   </div>
 
 </div>
-<script>window.onload=function(){window.print()}<\/script>
 </body>
 </html>`;
 
@@ -2054,6 +2053,8 @@ function compartirDashboard() {
     const win = window.open(url, '_blank');
     if (!win) {
       toast('Permite ventanas emergentes en Safari para compartir', 'error');
+    } else {
+      setTimeout(() => { try { win.print(); } catch(e){} }, 800);
     }
     setTimeout(() => URL.revokeObjectURL(url), 10000);
 
