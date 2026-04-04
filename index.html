@@ -1252,6 +1252,7 @@ let clientes = DB.get('clientes');
 let mercancias = DB.get('mercancias');
 let facturas = DB.get('facturas');
 let pagos = DB.get('pagos');
+let concClienteId = null;
 
 function save() {
   DB.set('clientes', clientes);
@@ -2111,7 +2112,6 @@ async function compartirPDF() {
 
 
 // ═══ CONCILIACIÓN ═══
-let concClienteId = null;
 
 function abrirConciliacion(clienteId) {
   concClienteId = clienteId;
