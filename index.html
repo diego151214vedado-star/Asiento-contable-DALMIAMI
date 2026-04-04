@@ -1813,465 +1813,302 @@ function renderDashboard() {
 }
 
 // ═══ COMPARTIR DASHBOARD ═══
-async function compartirDashboard() {
+function compartirDashboard() {
   const btn = document.getElementById('btnCompartirDash');
-  btn.textContent = '⏳ Generando...';
+  btn.textContent = '⏳ Preparando...';
   btn.disabled = true;
 
   try {
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const pageW = pdf.internal.pageSize.getWidth();
-    const pageH = pdf.internal.pageSize.getHeight();
-    const hoy = new Date().toLocaleDateString('es', { weekday:'long', year:'numeric', month:'long', day:'numeric' }).toUpperCase();
-    const hoyCorto = new Date().toISOString().split('T')[0];
+    const hoyObj = new Date();
+    const hoyLargo = hoyObj.toLocaleDateString('es', { year:'numeric', month:'long', day:'numeric' });
+    const hoyCorto = hoyObj.toISOString().split('T')[0];
 
-    // ── Encabezado ──
-    pdf.setFillColor(14, 14, 18);
-    pdf.rect(0, 0, pageW, 22, 'F');
-    pdf.setTextColor(255, 255, 255);
-    pdf.setFontSize(16);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('DAL MIAMI EXPORT LLC', 12, 10);
-    pdf.setFontSize(7);
-    pdf.setFont('helvetica', 'normal');
-    pdf.setTextColor(144, 144, 160);
-    pdf.text('RESUMEN GENERAL — LIBRO DE ASIENTO', 12, 16);
-    pdf.setTextColor(144, 144, 160);
-    pdf.text(hoy, pageW - 12, 10, { align: 'right' });
-    pdf.text('Fecha de emisión: ' + hoyCorto, pageW - 12, 16, { align: 'right' });
-
-    // Línea roja
-    pdf.setDrawColor(232, 32, 42);
-    pdf.setLineWidth(0.8);
-    pdf.line(0, 22, pageW, 22);
-
-    // ── Tarjetas de resumen ──
     const totalDeuda = facturas.reduce((s, f) => s + parseFloat(f.deuda), 0);
     const totalIngresado = pagos.reduce((s, p) => s + p.monto, 0);
     const totalSaldo = facturas.reduce((s, f) => s + getSaldo(f.id), 0);
-    const pendientes = facturas.filter(f => getEstatus(f.id) !== 'Pagado').length;
+    const totalClientes = clientes.length;
+    const pagadas = facturas.filter(f => getEstatus(f.id) === 'Pagado').length;
+    const parciales = facturas.filter(f => getEstatus(f.id) === 'Pagado parcialmente').length;
+    const pendientes = facturas.filter(f => getEstatus(f.id) === 'Pendiente').length;
+    const tasaCobro = totalDeuda > 0 ? ((totalIngresado / totalDeuda) * 100).toFixed(1) : '0.0';
 
-    const tarjetas = [
-      { label: 'TOTAL FACTURADO', valor: fmtUSD(totalDeuda), color: [107, 159, 255] },
-      { label: 'TOTAL INGRESADO', valor: fmtUSD(totalIngresado), color: [34, 197, 94] },
-      { label: 'SALDO POR COBRAR', valor: fmtUSD(Math.abs(totalSaldo)), color: totalSaldo > 0 ? [232, 32, 42] : [34, 197, 94] },
-      { label: 'FACTURAS PENDIENTES', valor: String(pendientes), color: [245, 158, 11] },
-    ];
-
-    const cardW = (pageW - 24) / 4;
-    const cardX = 8;
-    let cardY = 28;
-
-    tarjetas.forEach((t, i) => {
-      const x = cardX + i * (cardW + (16 / 3));
-      pdf.setFillColor(22, 22, 28);
-      pdf.roundedRect(x, cardY, cardW, 22, 2, 2, 'F');
-      pdf.setFontSize(6.5);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(144, 144, 160);
-      pdf.text(t.label, x + cardW / 2, cardY + 7, { align: 'center' });
-      pdf.setFontSize(13);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(...t.color);
-      pdf.text(t.valor, x + cardW / 2, cardY + 17, { align: 'center' });
-    });
-
-    // ── Tabla de facturas ──
-    let tableY = cardY + 28;
-    pdf.setFontSize(8);
-    pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(144, 144, 160);
-    pdf.text('FACTURAS', 10, tableY - 3);
-
-    // Cabecera tabla
-    const cols = ['Fecha', 'N° Fact.', 'Cliente', 'Mercancía', 'Saldo Fact.', 'Ingreso', 'Saldo', 'Estatus'];
-    const colW = [18, 14, 30, 46, 22, 22, 22, 26];
-    let cx = 8;
-
-    pdf.setFillColor(30, 30, 38);
-    pdf.rect(8, tableY, pageW - 16, 7, 'F');
-    pdf.setFontSize(6);
-    pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(144, 144, 160);
-    cols.forEach((col, i) => {
-      pdf.text(col.toUpperCase(), cx + 2, tableY + 4.5);
-      cx += colW[i];
-    });
-    tableY += 7;
-
-    // Filas
-    const rows = [...facturas].sort((a, b) => a.fecha < b.fecha ? -1 : 1);
-    rows.forEach((f, idx) => {
-      if (tableY > pageH - 20) { pdf.addPage(); tableY = 15; }
+    const rowsHTML = [...facturas].sort((a, b) => a.fecha < b.fecha ? -1 : 1).map((f, i) => {
       const c = clientes.find(x => x.id === f.clienteId);
       const m = mercancias.find(x => x.id === f.mercanciaId);
       const saldo = getSaldo(f.id);
       const ingreso = getTotalIngreso(f.id);
-      const estatus = getEstatus(f.id);
+      const est = getEstatus(f.id);
+      const estColor = est === 'Pagado' ? '#16a34a' : est === 'Pagado parcialmente' ? '#b45309' : '#dc2626';
+      const saldoColor = saldo > 0.01 ? '#dc2626' : saldo < -0.01 ? '#16a34a' : '#888';
+      const barColor = est === 'Pagado' ? '#16a34a' : est === 'Pagado parcialmente' ? '#f59e0b' : '#dc2626';
+      const bg = i % 2 === 0 ? '#f8f8fc' : '#ffffff';
+      return `<tr style="background:${bg}">
+        <td style="border-left:3px solid ${barColor};padding-left:8px">${fmtDate(f.fecha)}</td>
+        <td>${f.numero}</td>
+        <td>${c ? c.nombre : '—'}</td>
+        <td style="font-size:10px">${m ? m.nombre.substring(0,30) : '—'}</td>
+        <td style="text-align:right">${fmtUSD(f.deuda)}</td>
+        <td style="text-align:right;color:#16a34a">${fmtUSD(ingreso)}</td>
+        <td style="text-align:right;color:${saldoColor};font-weight:600">${fmtUSD(saldo)}</td>
+        <td style="color:${estColor};font-weight:700;font-size:10px">${est}</td>
+      </tr>`;
+    }).join('');
 
-      if (idx % 2 === 0) {
-        pdf.setFillColor(22, 22, 28);
-        pdf.rect(8, tableY, pageW - 16, 7, 'F');
-      }
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Informe Ejecutivo — DAL Miami ${hoyCorto}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',Arial,sans-serif; color:#1a1a2e; background:#fff; font-size:11px; }
+  .page { max-width:210mm; margin:0 auto; padding:0; }
 
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(6.5);
-      pdf.setTextColor(240, 240, 238);
-      cx = 8;
+  /* HEADER */
+  .header { background:#fff; padding:20px 28px 0; border-bottom:3px solid #E8202A; }
+  .header-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; }
+  .brand-name { font-size:24px; font-weight:700; color:#0f0f14; letter-spacing:1px; }
+  .brand-name span { color:#E8202A; }
+  .brand-info { font-size:9px; color:#666; margin-top:4px; line-height:1.8; }
+  .doc-meta { text-align:right; }
+  .doc-meta .doc-type { font-size:13px; font-weight:700; color:#E8202A; letter-spacing:1px; }
+  .doc-meta .doc-sub { font-size:9px; color:#888; margin-top:2px; line-height:1.7; }
 
-      const celdas = [
-        fmtDate(f.fecha),
-        f.numero,
-        (c ? c.nombre : '—').substring(0, 14),
-        (m ? m.nombre : '—').substring(0, 26),
-        fmtUSD(f.deuda),
-        fmtUSD(ingreso),
-        fmtUSD(saldo),
-        estatus,
-      ];
+  /* CARTA */
+  .section { padding:18px 28px; }
+  .section-title { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:#888; margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:5px; }
+  .carta { font-size:10.5px; color:#333; line-height:1.8; }
+  .carta p { margin-bottom:8px; }
 
-      celdas.forEach((val, i) => {
-        // Color estatus
-        if (i === 7) {
-          if (estatus === 'Pagado') pdf.setTextColor(34, 197, 94);
-          else if (estatus === 'Pagado parcialmente') pdf.setTextColor(245, 158, 11);
-          else pdf.setTextColor(255, 107, 107);
-        } else if (i === 6) {
-          if (saldo > 0) pdf.setTextColor(255, 107, 107);
-          else if (saldo < 0) pdf.setTextColor(34, 197, 94);
-          else pdf.setTextColor(144, 144, 160);
-        } else {
-          pdf.setTextColor(240, 240, 238);
-        }
-        pdf.text(String(val), cx + 2, tableY + 4.5);
-        cx += colW[i];
-      });
+  /* KPIs */
+  .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; padding:0 28px 18px; }
+  .kpi { border:1px solid #e0e0e8; border-radius:8px; padding:12px; text-align:center; position:relative; overflow:hidden; }
+  .kpi-bar { position:absolute; top:0; left:0; right:0; height:3px; }
+  .kpi-label { font-size:8px; text-transform:uppercase; letter-spacing:1px; color:#888; margin-top:6px; margin-bottom:6px; font-weight:600; }
+  .kpi-valor { font-size:14px; font-weight:700; line-height:1; }
+  .kpi-desc { font-size:8px; color:#aaa; margin-top:5px; }
 
-      // línea separadora
-      pdf.setDrawColor(46, 46, 58);
-      pdf.setLineWidth(0.2);
-      pdf.line(8, tableY + 7, pageW - 8, tableY + 7);
-      tableY += 7;
-    });
+  /* ESTADOS */
+  .estados { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:0 28px 18px; }
+  .estado { border-radius:8px; padding:12px; text-align:center; }
+  .estado-n { font-size:28px; font-weight:700; line-height:1; }
+  .estado-label { font-size:8px; text-transform:uppercase; letter-spacing:1px; margin-top:4px; font-weight:600; }
 
-    // ── Pie ──
-    const lastPage = pdf.internal.getNumberOfPages();
-    pdf.setPage(lastPage);
-    pdf.setFillColor(14, 14, 18);
-    pdf.rect(0, pageH - 14, pageW, 14, 'F');
-    pdf.setFontSize(7);
-    pdf.setTextColor(144, 144, 160);
-    pdf.text('DAL Miami Export LLC · 3901 SW 78th CT Miami FL-33155 · EIN: 93-1412443', pageW / 2, pageH - 8, { align: 'center' });
-    pdf.setTextColor(232, 32, 42);
-    pdf.text('Diego Hernández — Gerente Financiero', pageW / 2, pageH - 4, { align: 'center' });
+  /* TABLA */
+  .tabla-wrap { padding:0 28px 18px; }
+  table { width:100%; border-collapse:collapse; font-size:10px; }
+  thead tr { background:#0f0f14; color:#fff; }
+  th { padding:8px 6px; text-align:left; font-size:8px; text-transform:uppercase; letter-spacing:.8px; font-weight:600; }
+  th:last-child, th:nth-child(5), th:nth-child(6), th:nth-child(7) { text-align:right; }
+  td { padding:7px 6px; border-bottom:1px solid #eee; }
 
-    // ── Compartir ──
-    const pdfBlob = pdf.output('blob');
-    const fileName = `DAL_Miami_Dashboard_${hoyCorto}.pdf`;
-    const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+  /* CONCLUSIONES */
+  .conclusion { font-size:10.5px; color:#333; line-height:1.8; }
+  .conclusion p { margin-bottom:8px; }
 
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-      await navigator.share({
-        title: 'Resumen General — DAL Miami Export LLC',
-        text: 'Dashboard financiero DAL Miami Export LLC',
-        files: [pdfFile],
-      });
-    } else {
-      const url = URL.createObjectURL(pdfBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      a.click();
-      URL.revokeObjectURL(url);
+  /* PIE */
+  .footer { border-top:1px solid #e0e0e8; background:#f8f8fc; padding:14px 28px; display:flex; justify-content:space-between; align-items:flex-end; margin-top:20px; }
+  .firma-line { width:160px; border-bottom:1px solid #aaa; margin-bottom:5px; height:24px; }
+  .firma-name { font-weight:700; font-size:10px; color:#0f0f14; }
+  .firma-cargo { font-size:8px; color:#888; text-transform:uppercase; letter-spacing:1px; }
+  .footer-info { text-align:right; font-size:8px; color:#aaa; line-height:1.7; }
+
+  @media print {
+    body { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    @page { margin:0; size:A4; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div class="brand-name"><span>DAL</span> MIAMI EXPORT LLC</div>
+        <div class="brand-info">
+          3901 SW 78th CT · Miami FL-33155<br>
+          EIN: 93-1412443 · dalmiami9@gmail.com · +1 786-839-1403
+        </div>
+      </div>
+      <div class="doc-meta">
+        <div class="doc-type">INFORME FINANCIERO</div>
+        <div class="doc-sub">
+          Resumen Ejecutivo<br>
+          Fecha: ${hoyLargo}<br>
+          <strong>Confidencial — Uso Exclusivo de Socios</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARTA -->
+  <div class="section">
+    <div class="section-title">Carta de Presentación</div>
+    <div class="carta">
+      <p>Estimados socios e inversores,</p>
+      <p>A continuación presentamos el informe financiero de <strong>DAL Miami Export LLC</strong>, con corte al <strong>${hoyLargo}</strong>. Este documento refleja el estado actual de nuestra cartera de clientes, el comportamiento de las cuentas por cobrar y el nivel de cumplimiento en los compromisos de pago de nuestros socios comerciales.</p>
+      <p>DAL Miami Export LLC mantiene operaciones de exportación de productos alimenticios hacia mercados internacionales, con una cartera activa de <strong>${totalClientes} clientes</strong> y un volumen total facturado de <strong>${fmtUSD(totalDeuda)}</strong> en el período reportado. La tasa de cobro actual se sitúa en <strong>${tasaCobro}%</strong>, lo que refleja un sólido desempeño en la gestión de cuentas por cobrar.</p>
+      <p>Este informe ha sido preparado por la Gerencia Financiera para uso exclusivo de socios e inversores autorizados. Los datos son confidenciales y no deben ser divulgados a terceros sin autorización expresa de la dirección de la empresa.</p>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpis">
+    <div class="kpi">
+      <div class="kpi-bar" style="background:#1A3CCC"></div>
+      <div class="kpi-label">Total Facturado</div>
+      <div class="kpi-valor" style="color:#1A3CCC">${fmtUSD(totalDeuda)}</div>
+      <div class="kpi-desc">Volumen bruto emitido</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-bar" style="background:#16a34a"></div>
+      <div class="kpi-label">Total Cobrado</div>
+      <div class="kpi-valor" style="color:#16a34a">${fmtUSD(totalIngresado)}</div>
+      <div class="kpi-desc">Ingresos efectivamente recibidos</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-bar" style="background:${totalSaldo > 0 ? '#dc2626' : '#16a34a'}"></div>
+      <div class="kpi-label">Saldo por Cobrar</div>
+      <div class="kpi-valor" style="color:${totalSaldo > 0 ? '#dc2626' : '#16a34a'}">${fmtUSD(Math.abs(totalSaldo))}</div>
+      <div class="kpi-desc">${totalSaldo > 0 ? 'Cuentas activas pendientes' : 'Sin saldo pendiente'}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-bar" style="background:#f59e0b"></div>
+      <div class="kpi-label">Tasa de Cobro</div>
+      <div class="kpi-valor" style="color:#f59e0b">${tasaCobro}%</div>
+      <div class="kpi-desc">Cobrado vs. facturado</div>
+    </div>
+  </div>
+
+  <!-- ESTADOS -->
+  <div class="estados">
+    <div class="estado" style="background:#f0fdf4;border:1px solid #bbf7d0">
+      <div class="estado-n" style="color:#16a34a">${pagadas}</div>
+      <div class="estado-label" style="color:#16a34a">Facturas Pagadas</div>
+    </div>
+    <div class="estado" style="background:#fffbeb;border:1px solid #fde68a">
+      <div class="estado-n" style="color:#b45309">${parciales}</div>
+      <div class="estado-label" style="color:#b45309">Pagado Parcialmente</div>
+    </div>
+    <div class="estado" style="background:#fff1f2;border:1px solid #fecdd3">
+      <div class="estado-n" style="color:#dc2626">${pendientes}</div>
+      <div class="estado-label" style="color:#dc2626">Pendientes de Pago</div>
+    </div>
+  </div>
+
+  <!-- TABLA -->
+  <div class="tabla-wrap">
+    <div class="section-title">Detalle de Operaciones Comerciales</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>N°</th>
+          <th>Cliente</th>
+          <th>Producto</th>
+          <th style="text-align:right">Saldo Fact.</th>
+          <th style="text-align:right">Cobrado</th>
+          <th style="text-align:right">Saldo</th>
+          <th style="text-align:right">Estado</th>
+        </tr>
+      </thead>
+      <tbody>${rowsHTML}</tbody>
+    </table>
+  </div>
+
+  <!-- CONCLUSIONES -->
+  <div class="section">
+    <div class="section-title">Análisis y Conclusiones</div>
+    <div class="conclusion">
+      <p>Al cierre del presente período, DAL Miami Export LLC presenta una posición financiera sólida con una tasa de cobro del <strong>${tasaCobro}%</strong> sobre el total facturado. La cartera activa comprende <strong>${facturas.length} operaciones comerciales</strong> distribuidas entre <strong>${totalClientes} clientes</strong> en mercados internacionales.</p>
+      <p>De las operaciones registradas, <strong>${pagadas} facturas</strong> se encuentran completamente saldadas, <strong>${parciales}</strong> presentan pagos parciales en proceso de regularización, y <strong>${pendientes}</strong> están pendientes de primer pago. La Gerencia Financiera mantiene seguimiento activo de todas las cuentas con saldo vigente para asegurar la liquidez operativa de la empresa.</p>
+      <p>El saldo por cobrar de <strong>${fmtUSD(Math.abs(totalSaldo))}</strong> representa cuentas con clientes de trayectoria comercial verificada. Se proyecta la regularización de los saldos parciales en el corto plazo conforme a los acuerdos de pago vigentes.</p>
+    </div>
+  </div>
+
+  <!-- PIE -->
+  <div class="footer">
+    <div>
+      <div class="firma-line"></div>
+      <div class="firma-name">Diego Hernández</div>
+      <div class="firma-cargo">Gerente Financiero · DAL Miami Export LLC</div>
+    </div>
+    <div class="footer-info">
+      Documento confidencial generado el ${hoyLargo}<br>
+      DAL Miami Export LLC · EIN: 93-1412443<br>
+      dalmiami9@gmail.com · +1 786-839-1403
+    </div>
+  </div>
+
+</div>
+<script>window.onload = function(){ window.print(); }</script>
+</body>
+</html>`;
+
+    // Abrir en nueva ventana y disparar print/share nativo
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const win = window.open(url, '_blank');
+    if (!win) {
+      toast('Permite ventanas emergentes en Safari para compartir', 'error');
     }
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
 
-  } catch (err) {
+  } catch(err) {
     console.error(err);
-    toast('Error al generar PDF', 'error');
+    toast('Error al generar el informe', 'error');
   } finally {
     btn.textContent = '⬆️ Compartir PDF';
     btn.disabled = false;
   }
 }
 
-// ═══ COMPARTIR PDF ═══
+function agregarPie() {} // legacy stub
+
+
+
+// ═══ COMPARTIR PDF (Conciliación) ═══
 async function compartirPDF() {
   const btn = document.getElementById('btnCompartir');
   btn.textContent = '⏳ Generando...';
   btn.disabled = true;
-
   try {
     const doc = document.getElementById('concDoc');
-    const canvas = await html2canvas(doc, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      logging: false,
-    });
-
+    const canvas = await html2canvas(doc, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false });
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
     const imgW = pageW;
     const imgH = (canvas.height * imgW) / canvas.width;
-
-    let posY = 0;
-    let remaining = imgH;
-
-    // Paginar si el contenido es más largo que una página
+    let posY = 0; let remaining = imgH;
     while (remaining > 0) {
       pdf.addImage(imgData, 'JPEG', 0, posY, imgW, imgH);
-      remaining -= pageH;
-      posY -= pageH;
+      remaining -= pageH; posY -= pageH;
       if (remaining > 0) pdf.addPage();
     }
-
     const cliente = clientes.find(c => c.id === concClienteId);
     const nombreCliente = cliente ? cliente.nombre.replace(/\s+/g, '_') : 'cliente';
     const fecha = new Date().toISOString().split('T')[0];
     const fileName = `Conciliacion_${nombreCliente}_${fecha}.pdf`;
-
     const pdfBlob = pdf.output('blob');
     const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
-
-    // Web Share API — menú nativo de iOS
     if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-      await navigator.share({
-        title: `Conciliación — ${cliente ? cliente.nombre : ''}`,
-        text: `Estado de cuenta DAL Miami Export LLC`,
-        files: [pdfFile],
-      });
+      await navigator.share({ title: `Conciliación — ${cliente ? cliente.nombre : ''}`, text: 'Estado de cuenta DAL Miami Export LLC', files: [pdfFile] });
     } else {
-      // Fallback: descarga directa
       const url = URL.createObjectURL(pdfBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      a.click();
+      const a = document.createElement('a'); a.href = url; a.download = fileName; a.click();
       URL.revokeObjectURL(url);
     }
-  } catch (err) {
-    console.error(err);
-    toast('Error al generar PDF', 'error');
-  } finally {
-    btn.textContent = '⬆️ Compartir PDF';
-    btn.disabled = false;
-  }
+  } catch (err) { console.error(err); toast('Error al generar PDF', 'error'); }
+  finally { btn.textContent = '⬆️ Compartir PDF'; btn.disabled = false; }
 }
 
-// ═══ CONCILIACIÓN ═══
-let concClienteId = null;
-
-function abrirConciliacion(clienteId) {
-  concClienteId = clienteId;
-  // default: primer dia del mes actual hasta hoy
-  const hoy = new Date();
-  const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().split('T')[0];
-  const hoyStr = hoy.toISOString().split('T')[0];
-  document.getElementById('conc_desde').value = primerDia;
-  document.getElementById('conc_hasta').value = hoyStr;
-  document.getElementById('conciliacionOverlay').classList.add('open');
-  generarConciliacion();
-}
-
-function cerrarConciliacion() {
-  document.getElementById('conciliacionOverlay').classList.remove('open');
-  concClienteId = null;
-}
-
-function diasAtraso(fechaStr) {
-  if (!fechaStr) return 0;
-  const fecha = new Date(fechaStr + 'T00:00:00');
-  const hoy = new Date();
-  hoy.setHours(0,0,0,0);
-  const diff = Math.floor((hoy - fecha) / (1000 * 60 * 60 * 24));
-  return Math.max(0, diff);
-}
-
-function generarConciliacion() {
-  const cliente = clientes.find(c => c.id === concClienteId);
-  if (!cliente) return;
-
-  const desde = document.getElementById('conc_desde').value;
-  const hasta = document.getElementById('conc_hasta').value;
-
-  // Facturas del cliente en rango
-  const facturasCliente = facturas
-    .filter(f => f.clienteId === concClienteId && (!desde || f.fecha >= desde) && (!hasta || f.fecha <= hasta))
-    .sort((a, b) => a.fecha < b.fecha ? -1 : 1);
-
-  // Todos los pagos de esas facturas en rango
-  const facturasIds = facturas.filter(f => f.clienteId === concClienteId).map(f => f.id);
-  const pagosCliente = pagos
-    .filter(p => facturasIds.includes(p.facturaId) && (!desde || p.fecha >= desde) && (!hasta || p.fecha <= hasta))
-    .sort((a, b) => a.fecha < b.fecha ? -1 : 1);
-
-  // Construir movimientos combinados ordenados por fecha
-  const movimientos = [];
-
-  facturasCliente.forEach(f => {
-    const m = mercancias.find(x => x.id === f.mercanciaId);
-    if (f.arrastre > 0) {
-      movimientos.push({ fecha: f.fecha, tipo: 'favor', monto: -parseFloat(f.arrastre), facturaNum: f.numero, desc: 'Saldo a favor aplicado de factura anterior', mercancia: '' });
-    }
-    movimientos.push({ fecha: f.fecha, tipo: 'factura', monto: parseFloat(f.deuda), facturaNum: f.numero, desc: m ? m.nombre : '—', mercancia: m ? (m.descripcion || '') : '' });
-  });
-
-  pagosCliente.forEach(p => {
-    const f = facturas.find(x => x.id === p.facturaId);
-    movimientos.push({ fecha: p.fecha, tipo: 'pago', monto: -p.monto, facturaNum: f ? f.numero : '—', desc: p.notas || 'Pago recibido', mercancia: '' });
-  });
-
-  movimientos.sort((a, b) => a.fecha < b.fecha ? -1 : 1);
-
-  // Saldo corriente acumulado
-  let saldoCorriente = 0;
-  const filas = movimientos.map(mv => {
-    saldoCorriente += mv.monto;
-    return { ...mv, saldoCorriente };
-  });
-
-  // Totales
-  const totalFacturado = facturasCliente.reduce((s, f) => s + parseFloat(f.deuda), 0);
-  const totalFavor = facturasCliente.reduce((s, f) => s + (parseFloat(f.arrastre) || 0), 0);
-  const totalPagado = pagosCliente.reduce((s, p) => s + p.monto, 0);
-  const saldoFinal = totalFacturado - totalFavor - totalPagado;
-
-  // Fecha más antigua de factura pendiente
-  const facturasPendientes = facturasCliente.filter(f => getSaldo(f.id) > 0);
-  const fechaMasAntigua = facturasPendientes.length
-    ? facturasPendientes.sort((a, b) => a.fecha < b.fecha ? -1 : 1)[0].fecha
-    : null;
-  const atraso = fechaMasAntigua ? diasAtraso(fechaMasAntigua) : 0;
-
-  // Periodo texto
-  const fmtPeriodo = (d) => { if (!d) return '—'; const [y,m,day] = d.split('-'); return `${day}/${m}/${y}`; };
-  const periodoTxt = desde || hasta ? `Período: ${fmtPeriodo(desde)} — ${fmtPeriodo(hasta)}` : 'Todos los movimientos';
-  const hoyTxt = fmtPeriodo(new Date().toISOString().split('T')[0]);
-
-  // Nota final
-  let notaHTML = '';
-  if (saldoFinal > 0.01) {
-    notaHTML = `<div class="conc-nota deuda">
-      <div class="conc-nota-title">⚠️ Saldo Pendiente de Pago</div>
-      Estimado cliente <strong>${cliente.nombre}</strong>, a la fecha de este documento usted presenta un saldo pendiente de 
-      <strong>${fmtUSD(saldoFinal)}</strong>${atraso > 0 ? ` con un atraso de <strong>${atraso} días</strong>` : ''}.
-      Le agradecemos gestionar su pago a la brevedad posible. Para cualquier consulta no dude en contactarnos.
-    </div>`;
-  } else if (saldoFinal < -0.01) {
-    notaHTML = `<div class="conc-nota favor">
-      <div class="conc-nota-title">✅ Saldo a Su Favor</div>
-      Estimado cliente <strong>${cliente.nombre}</strong>, usted presenta un crédito a su favor de 
-      <strong>${fmtUSD(Math.abs(saldoFinal))}</strong>, el cual será aplicado como saldo a favor en su próxima factura.
-      Le agradecemos su puntualidad en los pagos.
-    </div>`;
-  } else {
-    notaHTML = `<div class="conc-nota saldado">
-      <div class="conc-nota-title">✔ Cuenta al Día</div>
-      Estimado cliente <strong>${cliente.nombre}</strong>, su cuenta se encuentra completamente al día. 
-      No presenta saldos pendientes en el período consultado. Le agradecemos su puntualidad.
-    </div>`;
-  }
-
-  // Render filas tabla
-  const filasHTML = filas.length ? filas.map(mv => {
-    const tipoLabel = mv.tipo === 'factura'
-      ? `<span class="conc-tipo tipo-factura">🧾 Factura</span>`
-      : mv.tipo === 'pago'
-      ? `<span class="conc-tipo tipo-pago">💰 Pago</span>`
-      : `<span class="conc-tipo tipo-favor">↩ Saldo a Favor</span>`;
-
-    const montoColor = mv.monto > 0 ? 'conc-saldo-pos' : 'conc-saldo-neg';
-    const saldoColor = mv.saldoCorriente > 0.01 ? 'conc-saldo-pos' : mv.saldoCorriente < -0.01 ? 'conc-saldo-neg' : 'conc-saldo-zero';
-    const montoTxt = mv.monto > 0 ? `+${fmtUSD(mv.monto)}` : fmtUSD(mv.monto);
-
-    return `<tr class="conc-row-${mv.tipo}">
-      <td>${fmtDate(mv.fecha)}</td>
-      <td>${tipoLabel}</td>
-      <td class="mono" style="font-size:11px">#${mv.facturaNum}</td>
-      <td style="max-width:200px">
-        <div style="font-weight:600;font-size:12px">${mv.desc}</div>
-        ${mv.mercancia ? `<div style="font-size:10px;color:#888;margin-top:2px">${mv.mercancia}</div>` : ''}
-      </td>
-      <td class="right ${montoColor}">${montoTxt}</td>
-      <td class="right ${saldoColor}">${fmtUSD(mv.saldoCorriente)}</td>
-    </tr>`;
-  }).join('') : `<tr><td colspan="6" style="text-align:center;padding:32px;color:#888">Sin movimientos en el período seleccionado</td></tr>`;
-
-  document.getElementById('concDoc').innerHTML = `
-    <div class="conc-header">
-      <div>
-        <div class="conc-brand-name"><span>DAL</span> MIAMI EXPORT LLC</div>
-        <div class="conc-brand-info">
-          3901 SW 78th CT Miami FL-33155<br>
-          EIN: 93-1412443 · dalmiami9@gmail.com<br>
-          Cell: +1 786-839-1403
-        </div>
-      </div>
-      <div class="conc-doc-meta">
-        <strong>ESTADO DE CUENTA</strong>
-        Fecha de emisión: ${hoyTxt}<br>
-        ${periodoTxt}
-      </div>
-    </div>
-
-    <div class="conc-client-box">
-      <div class="conc-client-label">Cliente</div>
-      <div class="conc-client-name">${cliente.nombre}</div>
-      <div class="conc-periodo">${periodoTxt}</div>
-    </div>
-
-    <table class="conc-table">
-      <thead>
-        <tr>
-          <th>Fecha</th>
-          <th>Tipo</th>
-          <th>N° Ref</th>
-          <th>Descripción</th>
-          <th class="right">Monto</th>
-          <th class="right">Saldo Corriente</th>
-        </tr>
-      </thead>
-      <tbody>${filasHTML}</tbody>
-    </table>
-
-    <div class="conc-resumen">
-      <div class="conc-res-box">
-        <div class="conc-res-label">Total Facturado</div>
-        <div class="conc-res-val azul">${fmtUSD(totalFacturado)}</div>
-      </div>
-      <div class="conc-res-box">
-        <div class="conc-res-label">Total Pagado</div>
-        <div class="conc-res-val verde">${fmtUSD(totalPagado)}</div>
-      </div>
-      <div class="conc-res-box" style="border-color:${saldoFinal > 0.01 ? '#fecdd3' : saldoFinal < -0.01 ? '#bbf7d0' : '#bae6fd'}">
-        <div class="conc-res-label">${saldoFinal > 0.01 ? 'Saldo a Pagar' : saldoFinal < -0.01 ? 'Saldo a Favor' : 'Saldo'}</div>
-        <div class="conc-res-val ${saldoFinal > 0.01 ? 'rojo' : saldoFinal < -0.01 ? 'verde' : 'azul'}">${fmtUSD(Math.abs(saldoFinal))}</div>
-      </div>
-    </div>
-
-    ${notaHTML}
-
-    <div class="conc-footer">
-      <div>
-        <div style="font-weight:600;color:#1a1a1a;margin-bottom:4px">DAL Miami Export LLC</div>
-        Este documento es un estado de cuenta informativo generado el ${hoyTxt}.
-      </div>
-      <div class="conc-firma">
-        <div class="conc-firma-line"></div>
-        <div style="color:#1a1a1a;font-weight:700">Diego Hernández</div>
-        <div style="color:#555;font-size:10px;text-transform:uppercase;letter-spacing:1px">Gerente Financiero</div>
-        <div style="color:#888;font-size:10px">DAL Miami Export LLC</div>
-      </div>
-    </div>
-  `;
-}
-
-// ═══ INIT ═══
+// ═══ BADGES ═══
 function updateBadges() {
   document.getElementById('badge-clientes').textContent = clientes.length;
   document.getElementById('badge-mercancias').textContent = mercancias.length;
