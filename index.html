@@ -1050,7 +1050,7 @@ function _abrirVentanaConciliacion(clienteId, desde, hasta) {
 
   const totalF=facturasCliente.reduce((s,f)=>s+parseFloat(f.deuda),0);
   const totalP=pagosCliente.reduce((s,p)=>s+p.monto,0);
-  const saldoFinal=facturasCliente.reduce((s,f)=>s+getSaldo(f.id),0);
+  const saldoFinal=facturasCliente.reduce((s,f)=>{ const sal=getSaldo(f.id); return s+(sal>0?sal:0); },0);
   const periodo='Todos los movimientos';
 
   const filasHTML=filas.map((mv,i)=>{
@@ -1159,7 +1159,7 @@ function compartirConciliacion() {
 
   const totalF=facturasCliente.reduce((s,f)=>s+parseFloat(f.deuda),0);
   const totalP=pagosCliente.reduce((s,p)=>s+p.monto,0);
-  const saldoFinal=facturasCliente.reduce((s,f)=>s+getSaldo(f.id),0);
+  const saldoFinal=facturasCliente.reduce((s,f)=>{ const sal=getSaldo(f.id); return s+(sal>0?sal:0); },0);
   const fmtP=d=>{if(!d)return '—';const[y,m,day]=d.split('-');return day+'/'+m+'/'+y;};
   const periodo=desde||hasta?fmtP(desde)+' — '+fmtP(hasta):'Todos los movimientos';
 
