@@ -412,9 +412,26 @@
       </div>
     </div>
 
+    <!-- Consignatario -->
+    <div class="form-group">
+      <label>Consignatario</label>
+      <select id="inv_consignatario_sel" onchange="onSelectConsignatario()" style="margin-bottom:6px">
+        <option value="EMPRESA EXPORTADORA DE ALIMENTOS Y PRODUCTOS VARIOS">EMPRESA EXPORTADORA DE ALIMENTOS Y PRODUCTOS VARIOS</option>
+        <option value="__nuevo__">+ Escribir nuevo...</option>
+      </select>
+      <input type="text" id="inv_consignatario_custom" placeholder="Escribe el consignatario..." style="display:none">
+    </div>
+
     <!-- Condiciones -->
     <div class="form-row">
-      <div class="form-group"><label>Condición</label><input type="text" id="inv_condicion" value="SEGÚN INCONTER 2020" placeholder="SEGÚN INCONTER 2020"></div>
+      <div class="form-group">
+        <label>Condición</label>
+        <select id="inv_condicion_sel" onchange="onSelectCondicion()" style="margin-bottom:6px">
+          <option value="SEGÚN INCONTER 2020">SEGÚN INCONTER 2020</option>
+          <option value="__nuevo__">+ Escribir nueva...</option>
+        </select>
+        <input type="text" id="inv_condicion" placeholder="O escribe una nueva..." style="display:none">
+      </div>
       <div class="form-group"><label>Incoterm</label><select id="inv_incoterm"><option>CFR</option><option>FOB</option><option>CIF</option><option>EXW</option></select></div>
     </div>
     <div class="form-row">
@@ -1414,6 +1431,7 @@ function populateInvoiceModal() {
   document.getElementById('inv_total_display').textContent = '$0.00';
   document.getElementById('inv_cliente_info').style.display = 'none';
   document.getElementById('inv_id').value = '';
+  refreshDropdowns();
 }
 
 function onSelectInvoiceCliente() {
@@ -1490,7 +1508,8 @@ function getInvoiceData() {
     fecha, numero, clienteId,
     moneda: document.getElementById('inv_moneda').value,
     lineas, subtotal, flete, seguro, total,
-    condicion: document.getElementById('inv_condicion').value.trim(),
+    consignatario: getInvoiceConsignatario(),
+    condicion: getInvoiceCondicion(),
     incoterm: document.getElementById('inv_incoterm').value,
     origen: document.getElementById('inv_origen').value.trim(),
     puerto: document.getElementById('inv_puerto').value.trim(),
@@ -1512,6 +1531,8 @@ function guardarInvoice() {
     facturas.push({ id: uid(), fecha: data.fecha, numero: data.numero, clienteId: data.clienteId, mercanciaId: mercId, deuda: data.total, arrastre: 0 });
     save();
   }
+  saveConsignatario(data.consignatario);
+  saveCondicion(data.condicion);
   saveInvoicesDB();
   closeModal('modalInvoice');
   renderInvoices();
@@ -1531,6 +1552,8 @@ function generarInvoice() {
     facturas.push({ id: uid(), fecha: data.fecha, numero: data.numero, clienteId: data.clienteId, mercanciaId: primerProd?primerProd.prodId:'', deuda: data.total, arrastre: 0 });
     save();
   }
+  saveConsignatario(data.consignatario);
+  saveCondicion(data.condicion);
   saveInvoicesDB();
   renderInvoices();
   updateBadges();
@@ -1603,7 +1626,7 @@ function abrirInvoicePDF(data) {
     // Consignatario box
     '<div style="border:1px solid #ccc;padding:10px 14px;flex:1">',
     '<div style="font-weight:900;font-size:11px;margin-bottom:6px">CONSIGNATARIO:</div>',
-    '<div style="font-size:11px">',(c&&c.consignatario?c.consignatario:'EMPRESA EXPORTADORA DE ALIMENTOS Y PRODUCTOS VARIOS'),'</div>',
+    '<div style="font-size:11px">',(data.consignatario||'EMPRESA EXPORTADORA DE ALIMENTOS Y PRODUCTOS VARIOS'),'</div>',
     '</div>',
     // Cliente info
     '<div style="border:1px solid #ccc;flex:2">',
@@ -1702,6 +1725,93 @@ function deleteInvoice(id) {
   renderInvoices();
   updateBadges();
   toast('Invoice eliminada');
+}
+
+
+// ═══ INVOICE HELPERS ═══
+function getConsignatarios() {
+  const saved = JSON.parse(localStorage.getItem('dalmiami_consignatarios') || '[]');
+  const defaults = ['EMPRESA EXPORTADORA DE ALIMENTOS Y PRODUCTOS VARIOS'];
+  return [...new Set([...defaults, ...saved])];
+}
+
+function saveConsignatario(val) {
+  if (!val || val === 'EMPRESA EXPORTADORA DE ALIMENTOS Y PRODUCTOS VARIOS') return;
+  const saved = JSON.parse(localStorage.getItem('dalmiami_consignatarios') || '[]');
+  if (!saved.includes(val)) {
+    saved.push(val);
+    localStorage.setItem('dalmiami_consignatarios', JSON.stringify(saved));
+  }
+}
+
+function getCondiciones() {
+  const saved = JSON.parse(localStorage.getItem('dalmiami_condiciones') || '[]');
+  const defaults = ['SEGÚN INCONTER 2020'];
+  return [...new Set([...defaults, ...saved])];
+}
+
+function saveCondicion(val) {
+  if (!val || val === 'SEGÚN INCONTER 2020') return;
+  const saved = JSON.parse(localStorage.getItem('dalmiami_condiciones') || '[]');
+  if (!saved.includes(val)) {
+    saved.push(val);
+    localStorage.setItem('dalmiami_condiciones', JSON.stringify(saved));
+  }
+}
+
+function onSelectConsignatario() {
+  const sel = document.getElementById('inv_consignatario_sel');
+  const custom = document.getElementById('inv_consignatario_custom');
+  if (sel.value === '__nuevo__') {
+    custom.style.display = 'block';
+    custom.focus();
+  } else {
+    custom.style.display = 'none';
+    custom.value = '';
+  }
+}
+
+function onSelectCondicion() {
+  const sel = document.getElementById('inv_condicion_sel');
+  const custom = document.getElementById('inv_condicion');
+  if (sel.value === '__nuevo__') {
+    custom.style.display = 'block';
+    custom.focus();
+  } else {
+    custom.style.display = 'none';
+    custom.value = '';
+  }
+}
+
+function getInvoiceConsignatario() {
+  const sel = document.getElementById('inv_consignatario_sel').value;
+  if (sel === '__nuevo__') return document.getElementById('inv_consignatario_custom').value.trim();
+  return sel;
+}
+
+function getInvoiceCondicion() {
+  const sel = document.getElementById('inv_condicion_sel').value;
+  if (sel === '__nuevo__') return document.getElementById('inv_condicion').value.trim();
+  return sel;
+}
+
+function refreshDropdowns() {
+  // Refresh consignatario dropdown
+  const cSel = document.getElementById('inv_consignatario_sel');
+  if (cSel) {
+    const current = cSel.value;
+    cSel.innerHTML = getConsignatarios().map(v =>
+      `<option value="${v}" ${v===current?'selected':''}>${v}</option>`
+    ).join('') + '<option value="__nuevo__">+ Escribir nuevo...</option>';
+  }
+  // Refresh condicion dropdown
+  const condSel = document.getElementById('inv_condicion_sel');
+  if (condSel) {
+    const current = condSel.value;
+    condSel.innerHTML = getCondiciones().map(v =>
+      `<option value="${v}" ${v===current?'selected':''}>${v}</option>`
+    ).join('') + '<option value="__nuevo__">+ Escribir nueva...</option>';
+  }
 }
 
 // ═══ BADGES ═══
