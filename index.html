@@ -260,7 +260,6 @@
       <div class="form-group"><label>Teléfono</label><input type="text" id="cl_telefono" placeholder="+1 000 000 0000"></div>
       <div class="form-group"><label>Email</label><input type="email" id="cl_email" placeholder="cliente@email.com"></div>
     </div>
-    <div class="form-group"><label>Consignatario</label><input type="text" id="cl_consignatario" placeholder="Ej: Empresa Exportadora de Alimentos"></div>
     <div class="form-group"><label>Notas</label><textarea id="cl_notas" rows="2" placeholder="Información adicional..."></textarea></div>
     <div class="form-actions">
       <button class="btn btn-secondary" onclick="closeModal('modalCliente')">Cancelar</button>
@@ -597,7 +596,6 @@ function saveCliente() {
     direccion: document.getElementById('cl_direccion').value.trim(),
     telefono: document.getElementById('cl_telefono').value.trim(),
     email: document.getElementById('cl_email').value.trim(),
-    consignatario: document.getElementById('cl_consignatario').value.trim(),
     notas: document.getElementById('cl_notas').value.trim(),
   };
   if (editId) {
@@ -624,7 +622,6 @@ function editCliente(id) {
   document.getElementById('cl_direccion').value = c.direccion || '';
   document.getElementById('cl_telefono').value = c.telefono || '';
   document.getElementById('cl_email').value = c.email || '';
-  document.getElementById('cl_consignatario').value = c.consignatario || '';
   document.getElementById('cl_notas').value = c.notas || '';
   document.getElementById('modalClienteTitle').innerHTML = 'EDITAR <span>CLIENTE</span>';
   document.getElementById('modalCliente').classList.add('open');
@@ -651,7 +648,6 @@ function renderClientes() {
   }
   grid.innerHTML = clientes.map(c => {
     const totalFacturas = facturas.filter(f => f.clienteId === c.id).length;
-    const saldoTotal = facturas.filter(f => f.clienteId === c.id).reduce((s, f) => s + getSaldo(f.id), 0);
     return `
     <div class="card">
       <div class="card-header">
@@ -668,7 +664,6 @@ function renderClientes() {
       ${c.telefono ? `<div class="card-row"><span class="card-label">Teléfono</span><span class="card-value mono">${c.telefono}</span></div>` : ''}
       ${c.email ? `<div class="card-row"><span class="card-label">Email</span><span class="card-value">${c.email}</span></div>` : ''}
       <div class="card-row"><span class="card-label">Facturas</span><span class="card-value">${totalFacturas}</span></div>
-      <div class="card-row"><span class="card-label">Saldo total</span><span class="card-value ${saldoTotal > 0 ? 'amount-neg' : saldoTotal < 0 ? 'amount-pos' : 'amount-zero'}">${fmtUSD(saldoTotal)}</span></div>
     </div>`;
   }).join('');
 }
