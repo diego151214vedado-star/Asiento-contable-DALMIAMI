@@ -1037,8 +1037,7 @@ function _abrirVentanaConciliacion(clienteId, desde, hasta) {
   const movs=[];
   facturasCliente.forEach(f=>{
     const m=mercancias.find(x=>x.id===f.mercanciaId);
-    if(f.arrastre>0) movs.push({fecha:f.fecha,tipo:'favor',monto:-parseFloat(f.arrastre),num:f.numero,desc:'Saldo a favor aplicado',mer:''});
-    movs.push({fecha:f.fecha,tipo:'factura',monto:parseFloat(f.deuda),num:f.numero,desc:m?m.nombre:'—',mer:m?(m.descripcion||''):''});
+    movs.push({fecha:f.fecha,tipo:'factura',monto:parseFloat(f.deuda)-(parseFloat(f.arrastre)||0),num:f.numero,desc:m?m.nombre:'—',mer:m?(m.descripcion||''):''});
   });
   pagosCliente.forEach(p=>{
     const f=facturas.find(x=>x.id===p.facturaId);
@@ -1148,8 +1147,7 @@ function compartirConciliacion() {
   const movs=[];
   facturasCliente.forEach(f=>{
     const m=mercancias.find(x=>x.id===f.mercanciaId);
-    if(f.arrastre>0) movs.push({fecha:f.fecha,tipo:'favor',monto:-parseFloat(f.arrastre),num:f.numero,desc:'Saldo a favor aplicado',mer:''});
-    movs.push({fecha:f.fecha,tipo:'factura',monto:parseFloat(f.deuda),num:f.numero,desc:m?m.nombre:'—',mer:m?(m.descripcion||''):''});
+    movs.push({fecha:f.fecha,tipo:'factura',monto:parseFloat(f.deuda)-(parseFloat(f.arrastre)||0),num:f.numero,desc:m?m.nombre:'—',mer:m?(m.descripcion||''):''});
   });
   pagosCliente.forEach(p=>{
     const f=facturas.find(x=>x.id===p.facturaId);
