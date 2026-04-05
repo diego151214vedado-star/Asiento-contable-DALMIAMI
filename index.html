@@ -161,6 +161,7 @@
   <button class="nav-tab" onclick="showSection('mercancias')" id="tab-mercancias"><span>📦</span> Mercancías <span class="badge" id="badge-mercancias">0</span></button>
   <button class="nav-tab" onclick="showSection('facturas')" id="tab-facturas"><span>🧾</span> Facturas <span class="badge" id="badge-facturas">0</span></button>
   <button class="nav-tab" onclick="showSection('pagos')" id="tab-pagos"><span>💰</span> Pagos <span class="badge" id="badge-pagos">0</span></button>
+  <button class="nav-tab" onclick="showSection('invoices')" id="tab-invoices"><span>📋</span> Invoices <span class="badge" id="badge-invoices">0</span></button>
 </nav>
 
 <main>
@@ -230,6 +231,18 @@
       <table><thead><tr><th>Fecha</th><th>N° Factura</th><th>Cliente</th><th>Monto</th><th>Notas</th><th>Acciones</th></tr></thead><tbody id="pagosTable"></tbody></table>
     </div>
   </div>
+
+  <!-- INVOICES -->
+  <div class="section" id="section-invoices">
+    <div class="page-header">
+      <div><div class="page-title">CREAR <span>INVOICE</span></div><div class="page-sub">Genera y envía facturas a tus clientes</div></div>
+      <button class="btn btn-primary" onclick="openModal('modalInvoice')">＋ Nueva Invoice</button>
+    </div>
+    <div class="table-wrapper">
+      <table><thead><tr><th>Fecha</th><th>N° Invoice</th><th>Cliente</th><th>Total</th><th>Acciones</th></tr></thead>
+      <tbody id="invoicesTable"></tbody></table>
+    </div>
+  </div>
 </main>
 
 <!-- MODAL CLIENTE -->
@@ -237,12 +250,17 @@
   <div class="modal">
     <div class="modal-title" id="modalClienteTitle">NUEVO <span>CLIENTE</span></div>
     <input type="hidden" id="cl_id">
-    <div class="form-group"><label>Nombre / Razón Social *</label><input type="text" id="cl_nombre" placeholder="Ej: La Catedral surl"></div>
+    <div class="form-group"><label>Nombre / Razón Social *</label><input type="text" id="cl_nombre" placeholder="Ej: La Catedral SURL"></div>
     <div class="form-row">
+      <div class="form-group"><label>CIF</label><input type="text" id="cl_cif" placeholder="Ej: 50004348171"></div>
       <div class="form-group"><label>País</label><input type="text" id="cl_pais" placeholder="Ej: Cuba"></div>
-      <div class="form-group"><label>Teléfono</label><input type="text" id="cl_telefono" placeholder="+1 000 000 0000"></div>
     </div>
-    <div class="form-group"><label>Email</label><input type="email" id="cl_email" placeholder="cliente@email.com"></div>
+    <div class="form-group"><label>Dirección</label><input type="text" id="cl_direccion" placeholder="Ej: Calle 8, 106, Vedado"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Teléfono</label><input type="text" id="cl_telefono" placeholder="+1 000 000 0000"></div>
+      <div class="form-group"><label>Email</label><input type="email" id="cl_email" placeholder="cliente@email.com"></div>
+    </div>
+    <div class="form-group"><label>Consignatario</label><input type="text" id="cl_consignatario" placeholder="Ej: Empresa Exportadora de Alimentos"></div>
     <div class="form-group"><label>Notas</label><textarea id="cl_notas" rows="2" placeholder="Información adicional..."></textarea></div>
     <div class="form-actions">
       <button class="btn btn-secondary" onclick="closeModal('modalCliente')">Cancelar</button>
@@ -259,7 +277,7 @@
     <div class="form-group"><label>Nombre del Producto *</label><input type="text" id="mc_nombre" placeholder="Ej: Frozen 4x10 Lb Poly-Bagged, Chicken Leg"></div>
     <div class="form-row">
       <div class="form-group"><label>Código / SKU</label><input type="text" id="mc_codigo" placeholder="CHK-LEG-001"></div>
-      <div class="form-group"><label>Unidad</label><select id="mc_unidad"><option>Lb</option><option>Kg</option><option>Caja</option><option>Unidad</option><option>VP</option></select></div>
+      <div class="form-group"><label>UM (Unidad de Medida)</label><select id="mc_unidad"><option value="KG">KG</option><option value="LB">LB</option><option value="Lb">Lb</option><option value="Caja">Caja</option><option value="Unidad">Unidad</option><option value="VP">VP</option><option value="MT">MT</option></select></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label>Precio base (US$)</label><input type="number" id="mc_precio" placeholder="0.00" step="0.01"></div>
@@ -313,6 +331,101 @@
     <div class="form-actions">
       <button class="btn btn-secondary" onclick="closeModal('modalPago')">Cancelar</button>
       <button class="btn btn-blue" id="btnGuardarPago" onclick="savePago()">Registrar Pago</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL INVOICE -->
+<div class="modal-overlay" id="modalInvoice" style="z-index:250;overflow-y:auto">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-title" id="modalInvoiceTitle">NUEVA <span>INVOICE</span></div>
+    <input type="hidden" id="inv_id">
+
+    <div class="form-row">
+      <div class="form-group"><label>Fecha *</label><input type="date" id="inv_fecha"></div>
+      <div class="form-group"><label>N° Invoice *</label><input type="text" id="inv_numero" placeholder="2608"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Moneda</label><select id="inv_moneda"><option value="USD">USD</option><option value="EUR">EUR</option></select></div>
+      <div class="form-group"><label>Cliente *</label><select id="inv_cliente" onchange="onSelectInvoiceCliente()"><option value="">— Selecciona —</option></select></div>
+    </div>
+
+    <!-- Info cliente auto -->
+    <div id="inv_cliente_info" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:18px;font-size:12px;display:none">
+      <div style="display:flex;gap:20px;flex-wrap:wrap">
+        <div><span style="color:var(--text2)">CIF: </span><span id="inv_cli_cif"></span></div>
+        <div><span style="color:var(--text2)">Dirección: </span><span id="inv_cli_dir"></span></div>
+      </div>
+    </div>
+
+    <!-- Productos -->
+    <div class="section-label" style="margin-bottom:10px">Líneas de Producto</div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;font-size:12px;margin-bottom:16px">
+        <thead><tr style="background:var(--surface2)">
+          <th style="padding:8px;text-align:left">Producto/Servicio</th>
+          <th style="padding:8px;text-align:center;width:60px">UM</th>
+          <th style="padding:8px;text-align:right;width:90px">Cantidad</th>
+          <th style="padding:8px;text-align:right;width:90px">Precio U.</th>
+          <th style="padding:8px;text-align:right;width:100px">Importe</th>
+        </tr></thead>
+        <tbody id="inv_lineas">
+          <tr id="inv_lin_1">
+            <td style="padding:4px"><select id="inv_prod_1" style="width:100%;padding:6px;font-size:12px" onchange="onSelectProd(1)"><option value="">— Mercancía —</option></select></td>
+            <td style="padding:4px"><input type="text" id="inv_um_1" style="width:100%;padding:6px;font-size:12px;text-align:center" placeholder="KG"></td>
+            <td style="padding:4px"><input type="number" id="inv_qty_1" style="width:100%;padding:6px;font-size:12px;text-align:right" placeholder="0" step="0.001" oninput="calcLinea(1)"></td>
+            <td style="padding:4px"><input type="number" id="inv_price_1" style="width:100%;padding:6px;font-size:12px;text-align:right" placeholder="0.00" step="0.01" oninput="calcLinea(1)"></td>
+            <td style="padding:4px;text-align:right;font-weight:600;color:var(--green)" id="inv_imp_1">$0.00</td>
+          </tr>
+          <tr id="inv_lin_2">
+            <td style="padding:4px"><select id="inv_prod_2" style="width:100%;padding:6px;font-size:12px" onchange="onSelectProd(2)"><option value="">— Mercancía —</option></select></td>
+            <td style="padding:4px"><input type="text" id="inv_um_2" style="width:100%;padding:6px;font-size:12px;text-align:center" placeholder="KG"></td>
+            <td style="padding:4px"><input type="number" id="inv_qty_2" style="width:100%;padding:6px;font-size:12px;text-align:right" placeholder="0" step="0.001" oninput="calcLinea(2)"></td>
+            <td style="padding:4px"><input type="number" id="inv_price_2" style="width:100%;padding:6px;font-size:12px;text-align:right" placeholder="0.00" step="0.01" oninput="calcLinea(2)"></td>
+            <td style="padding:4px;text-align:right;font-weight:600;color:var(--green)" id="inv_imp_2">—</td>
+          </tr>
+          <tr id="inv_lin_3">
+            <td style="padding:4px"><select id="inv_prod_3" style="width:100%;padding:6px;font-size:12px" onchange="onSelectProd(3)"><option value="">— Mercancía —</option></select></td>
+            <td style="padding:4px"><input type="text" id="inv_um_3" style="width:100%;padding:6px;font-size:12px;text-align:center" placeholder="KG"></td>
+            <td style="padding:4px"><input type="number" id="inv_qty_3" style="width:100%;padding:6px;font-size:12px;text-align:right" placeholder="0" step="0.001" oninput="calcLinea(3)"></td>
+            <td style="padding:4px"><input type="number" id="inv_price_3" style="width:100%;padding:6px;font-size:12px;text-align:right" placeholder="0.00" step="0.01" oninput="calcLinea(3)"></td>
+            <td style="padding:4px;text-align:right;font-weight:600;color:var(--green)" id="inv_imp_3">—</td>
+          </tr>
+          <tr id="inv_lin_4">
+            <td style="padding:4px"><select id="inv_prod_4" style="width:100%;padding:6px;font-size:12px" onchange="onSelectProd(4)"><option value="">— Mercancía —</option></select></td>
+            <td style="padding:4px"><input type="text" id="inv_um_4" style="width:100%;padding:6px;font-size:12px;text-align:center" placeholder="KG"></td>
+            <td style="padding:4px"><input type="number" id="inv_qty_4" style="width:100%;padding:6px;font-size:12px;text-align:right" placeholder="0" step="0.001" oninput="calcLinea(4)"></td>
+            <td style="padding:4px"><input type="number" id="inv_price_4" style="width:100%;padding:6px;font-size:12px;text-align:right" placeholder="0.00" step="0.01" oninput="calcLinea(4)"></td>
+            <td style="padding:4px;text-align:right;font-weight:600;color:var(--green)" id="inv_imp_4">—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Subtotales -->
+    <div style="display:flex;gap:14px;margin-bottom:16px">
+      <div class="form-group" style="flex:1"><label>Flete (US$)</label><input type="number" id="inv_flete" value="0" step="0.01" oninput="calcTotales()"></div>
+      <div class="form-group" style="flex:1"><label>Seguro (US$)</label><input type="number" id="inv_seguro" value="0" step="0.01" oninput="calcTotales()"></div>
+      <div style="flex:1;background:var(--surface2);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:4px">TOTAL</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--green)" id="inv_total_display">$0.00</div>
+      </div>
+    </div>
+
+    <!-- Condiciones -->
+    <div class="form-row">
+      <div class="form-group"><label>Condición</label><input type="text" id="inv_condicion" value="SEGÚN INCONTER 2020" placeholder="SEGÚN INCONTER 2020"></div>
+      <div class="form-group"><label>Incoterm</label><select id="inv_incoterm"><option>CFR</option><option>FOB</option><option>CIF</option><option>EXW</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Origen</label><input type="text" id="inv_origen" placeholder="Ej: EUA"></div>
+      <div class="form-group"><label>Puerto de Embarque</label><input type="text" id="inv_puerto" placeholder="Ej: Mariel"></div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modalInvoice')">Cancelar</button>
+      <button class="btn btn-primary" onclick="generarInvoice()">📋 Generar y Compartir</button>
+      <button class="btn btn-blue" onclick="guardarInvoice()">💾 Solo Guardar</button>
     </div>
   </div>
 </div>
@@ -386,6 +499,7 @@ function showSection(id) {
   if (id === 'mercancias') renderMercancias();
   if (id === 'facturas') renderFacturas();
   if (id === 'pagos') renderPagos();
+  if (id === 'invoices') renderInvoices();
 }
 
 // ═══ MODAL ═══
@@ -461,9 +575,12 @@ function saveCliente() {
   const editId = document.getElementById('cl_id').value;
   const data = {
     nombre,
+    cif: document.getElementById('cl_cif').value.trim(),
     pais: document.getElementById('cl_pais').value.trim(),
+    direccion: document.getElementById('cl_direccion').value.trim(),
     telefono: document.getElementById('cl_telefono').value.trim(),
     email: document.getElementById('cl_email').value.trim(),
+    consignatario: document.getElementById('cl_consignatario').value.trim(),
     notas: document.getElementById('cl_notas').value.trim(),
   };
   if (editId) {
@@ -485,9 +602,12 @@ function editCliente(id) {
   if (!c) return;
   document.getElementById('cl_id').value = c.id;
   document.getElementById('cl_nombre').value = c.nombre || '';
+  document.getElementById('cl_cif').value = c.cif || '';
   document.getElementById('cl_pais').value = c.pais || '';
+  document.getElementById('cl_direccion').value = c.direccion || '';
   document.getElementById('cl_telefono').value = c.telefono || '';
   document.getElementById('cl_email').value = c.email || '';
+  document.getElementById('cl_consignatario').value = c.consignatario || '';
   document.getElementById('cl_notas').value = c.notas || '';
   document.getElementById('modalClienteTitle').innerHTML = 'EDITAR <span>CLIENTE</span>';
   document.getElementById('modalCliente').classList.add('open');
@@ -525,6 +645,8 @@ function renderClientes() {
           <button class="btn btn-danger btn-sm" onclick="deleteCliente('${c.id}')">✕</button>
         </div>
       </div>
+      ${c.cif ? `<div class="card-row"><span class="card-label">CIF</span><span class="card-value mono">${c.cif}</span></div>` : ''}
+      ${c.direccion ? `<div class="card-row"><span class="card-label">Dirección</span><span class="card-value" style="font-size:11px;text-align:right;max-width:180px">${c.direccion}</span></div>` : ''}
       ${c.pais ? `<div class="card-row"><span class="card-label">País</span><span class="card-value">${c.pais}</span></div>` : ''}
       ${c.telefono ? `<div class="card-row"><span class="card-label">Teléfono</span><span class="card-value mono">${c.telefono}</span></div>` : ''}
       ${c.email ? `<div class="card-row"><span class="card-label">Email</span><span class="card-value">${c.email}</span></div>` : ''}
@@ -1248,12 +1370,347 @@ function compartirConciliacion() {
 }
 
 
+
+// ═══ INVOICES ═══
+let invoices = DB.get('invoices');
+
+function saveInvoicesDB() { DB.set('invoices', invoices); }
+
+function openModal(id) {
+  if (id === 'modalFactura') populateFacturaSelects();
+  if (id === 'modalPago') populatePagoSelects();
+  if (id === 'modalInvoice') populateInvoiceModal();
+  document.getElementById(id).classList.add('open');
+  const dateInputs = document.querySelectorAll('#' + id + ' input[type=date]');
+  dateInputs.forEach(i => { if (!i.value) i.value = new Date().toISOString().split('T')[0]; });
+}
+
+function populateInvoiceModal() {
+  // Populate cliente select
+  const sel = document.getElementById('inv_cliente');
+  sel.innerHTML = '<option value="">— Selecciona —</option>' +
+    clientes.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+  // Populate product selects
+  [1,2,3,4].forEach(i => {
+    const ps = document.getElementById('inv_prod_'+i);
+    ps.innerHTML = '<option value="">— Mercancía —</option>' +
+      mercancias.map(m => `<option value="${m.id}">${m.nombre}</option>`).join('');
+  });
+  // Auto numero
+  const nums = invoices.map(inv => parseInt(inv.numero) || 0);
+  const existingFact = facturas.map(f => parseInt(f.numero) || 0);
+  const allNums = [...nums, ...existingFact];
+  const next = allNums.length ? Math.max(...allNums) + 1 : 2608;
+  document.getElementById('inv_numero').value = next;
+  // Reset
+  [1,2,3,4].forEach(i => {
+    document.getElementById('inv_qty_'+i).value = '';
+    document.getElementById('inv_price_'+i).value = '';
+    document.getElementById('inv_imp_'+i).textContent = i===1?'$0.00':'—';
+    document.getElementById('inv_um_'+i).value = '';
+  });
+  document.getElementById('inv_flete').value = '0';
+  document.getElementById('inv_seguro').value = '0';
+  document.getElementById('inv_total_display').textContent = '$0.00';
+  document.getElementById('inv_cliente_info').style.display = 'none';
+  document.getElementById('inv_id').value = '';
+}
+
+function onSelectInvoiceCliente() {
+  const id = document.getElementById('inv_cliente').value;
+  const info = document.getElementById('inv_cliente_info');
+  if (!id) { info.style.display = 'none'; return; }
+  const c = clientes.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('inv_cli_cif').textContent = c.cif || '—';
+  document.getElementById('inv_cli_dir').textContent = c.direccion || '—';
+  info.style.display = 'block';
+}
+
+function onSelectProd(i) {
+  const id = document.getElementById('inv_prod_'+i).value;
+  if (!id) return;
+  const m = mercancias.find(x => x.id === id);
+  if (!m) return;
+  document.getElementById('inv_um_'+i).value = m.unidad || 'KG';
+  if (m.precio) {
+    document.getElementById('inv_price_'+i).value = m.precio;
+    calcLinea(i);
+  }
+}
+
+function calcLinea(i) {
+  const qty = parseFloat(document.getElementById('inv_qty_'+i).value) || 0;
+  const price = parseFloat(document.getElementById('inv_price_'+i).value) || 0;
+  const imp = qty * price;
+  document.getElementById('inv_imp_'+i).textContent = imp > 0 ? fmtUSD(imp) : '—';
+  calcTotales();
+}
+
+function calcTotales() {
+  let subtotal = 0;
+  [1,2,3,4].forEach(i => {
+    const qty = parseFloat(document.getElementById('inv_qty_'+i).value) || 0;
+    const price = parseFloat(document.getElementById('inv_price_'+i).value) || 0;
+    subtotal += qty * price;
+  });
+  const flete = parseFloat(document.getElementById('inv_flete').value) || 0;
+  const seguro = parseFloat(document.getElementById('inv_seguro').value) || 0;
+  const total = subtotal + flete + seguro;
+  document.getElementById('inv_total_display').textContent = fmtUSD(total);
+  return { subtotal, flete, seguro, total };
+}
+
+function getInvoiceData() {
+  const clienteId = document.getElementById('inv_cliente').value;
+  const cliente = clientes.find(c => c.id === clienteId);
+  const fecha = document.getElementById('inv_fecha').value;
+  const numero = document.getElementById('inv_numero').value.trim();
+  if (!fecha || !numero || !clienteId) { toast('Completa fecha, número y cliente', 'error'); return null; }
+
+  const lineas = [];
+  [1,2,3,4].forEach(i => {
+    const prodId = document.getElementById('inv_prod_'+i).value;
+    const qty = parseFloat(document.getElementById('inv_qty_'+i).value) || 0;
+    const price = parseFloat(document.getElementById('inv_price_'+i).value) || 0;
+    if (prodId && qty > 0) {
+      const m = mercancias.find(x => x.id === prodId);
+      lineas.push({
+        prodId, nombre: m ? m.nombre : '—',
+        um: document.getElementById('inv_um_'+i).value || 'KG',
+        qty, price, importe: qty * price
+      });
+    }
+  });
+  if (!lineas.length) { toast('Agrega al menos un producto', 'error'); return null; }
+
+  const { subtotal, flete, seguro, total } = calcTotales();
+  return {
+    id: document.getElementById('inv_id').value || uid(),
+    fecha, numero, clienteId,
+    moneda: document.getElementById('inv_moneda').value,
+    lineas, subtotal, flete, seguro, total,
+    condicion: document.getElementById('inv_condicion').value.trim(),
+    incoterm: document.getElementById('inv_incoterm').value,
+    origen: document.getElementById('inv_origen').value.trim(),
+    puerto: document.getElementById('inv_puerto').value.trim(),
+    cliente
+  };
+}
+
+function guardarInvoice() {
+  const data = getInvoiceData();
+  if (!data) return;
+  // Save to invoices
+  const idx = invoices.findIndex(x => x.id === data.id);
+  if (idx >= 0) invoices[idx] = data; else invoices.push(data);
+  // Also register in facturas if not already there
+  const yaEnFacturas = facturas.find(f => f.numero === data.numero);
+  if (!yaEnFacturas) {
+    const primerProd = data.lineas[0];
+    const mercId = primerProd ? primerProd.prodId : '';
+    facturas.push({ id: uid(), fecha: data.fecha, numero: data.numero, clienteId: data.clienteId, mercanciaId: mercId, deuda: data.total, arrastre: 0 });
+    save();
+  }
+  saveInvoicesDB();
+  closeModal('modalInvoice');
+  renderInvoices();
+  updateBadges();
+  toast('Invoice guardada ✅');
+}
+
+function generarInvoice() {
+  const data = getInvoiceData();
+  if (!data) return;
+  // Save first
+  const idx = invoices.findIndex(x => x.id === data.id);
+  if (idx >= 0) invoices[idx] = data; else invoices.push(data);
+  const yaEnFacturas = facturas.find(f => f.numero === data.numero);
+  if (!yaEnFacturas) {
+    const primerProd = data.lineas[0];
+    facturas.push({ id: uid(), fecha: data.fecha, numero: data.numero, clienteId: data.clienteId, mercanciaId: primerProd?primerProd.prodId:'', deuda: data.total, arrastre: 0 });
+    save();
+  }
+  saveInvoicesDB();
+  renderInvoices();
+  updateBadges();
+  // Generate PDF
+  abrirInvoicePDF(data);
+  closeModal('modalInvoice');
+}
+
+function fmtInvDate(d) {
+  if (!d) return '—';
+  const [y,m,day] = d.split('-');
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return day + ' ' + meses[parseInt(m)-1] + ' ' + y;
+}
+
+function abrirInvoicePDF(data) {
+  const c = data.cliente || clientes.find(x => x.id === data.clienteId);
+
+  const lineasHTML = data.lineas.map(l =>
+    '<tr><td style="padding:12px 14px;font-weight:700;border:1px solid #ddd">'+l.nombre+'</td>'
+    +'<td style="padding:12px 14px;text-align:center;border:1px solid #ddd">'+l.um+'</td>'
+    +'<td style="padding:12px 14px;text-align:right;border:1px solid #ddd">'+l.qty.toLocaleString('es',{minimumFractionDigits:3,maximumFractionDigits:3})+'</td>'
+    +'<td style="padding:12px 14px;text-align:right;border:1px solid #ddd">'+l.price.toLocaleString('es',{minimumFractionDigits:2,maximumFractionDigits:2})+'</td>'
+    +'<td style="padding:12px 14px;text-align:right;border:1px solid #ddd;font-weight:700">$'+l.importe.toLocaleString('es',{minimumFractionDigits:2,maximumFractionDigits:2})+'</td>'
+    +'</tr>'
+  ).join('') +
+  // Empty rows to fill up to 4
+  Array(Math.max(0, 4 - data.lineas.length)).fill(
+    '<tr><td style="padding:12px 14px;border:1px solid #ddd">&nbsp;</td><td style="border:1px solid #ddd"></td><td style="border:1px solid #ddd"></td><td style="border:1px solid #ddd"></td><td style="border:1px solid #ddd"></td></tr>'
+  ).join('');
+
+  // Logo SVG inline (DAL Miami colors)
+  const logoSVG = '<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><rect width="80" height="80" fill="white"/><ellipse cx="28" cy="40" rx="22" ry="28" fill="#E8202A"/><ellipse cx="52" cy="40" rx="22" ry="28" fill="#1A3CCC"/><ellipse cx="40" cy="40" rx="16" ry="28" fill="white"/><text x="40" y="32" text-anchor="middle" font-family="Arial" font-weight="900" font-size="11" fill="#1a1a1a">DAL</text><text x="40" y="46" text-anchor="middle" font-family="Arial" font-weight="900" font-size="9" fill="#1a1a1a">MIAMI</text><text x="40" y="58" text-anchor="middle" font-family="Arial" font-weight="900" font-size="9" fill="#1a1a1a">LLC</text></svg>';
+
+  const partes = [
+    '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">',
+    '<title>Invoice ',data.numero,' - ',(c?c.nombre:''),'</title>',
+    '<'+'style>',
+    '*{margin:0;padding:0;box-sizing:border-box}',
+    'body{font-family:Arial,sans-serif;color:#1a1a1a;background:#fff;padding:28px;font-size:12px}',
+    '@media print{body{padding:12px}@page{margin:1cm;size:A4}}',
+    '<'+'/style></head><body>',
+
+    // Header
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">',
+    // Left: logo + company info
+    '<div style="display:flex;gap:14px;align-items:flex-start">',
+    logoSVG,
+    '<div style="font-size:10px;line-height:1.9;margin-top:4px">',
+    '<strong style="font-size:12px">DAL MIAMI EXPORT LLC</strong><br>',
+    '3901 SW 78th CT Miami Fl-33155<br>',
+    'EIN: 93-1412443<br>',
+    'Email: dalmiami9@gmail.com<br>',
+    'Cell: +1 7868391403',
+    '</div></div>',
+    // Center: INVOICE title
+    '<div style="text-align:center;flex:1;padding-top:10px">',
+    '<div style="font-size:52px;font-weight:900;color:#E8202A;letter-spacing:2px;line-height:1">INVOICE</div>',
+    '</div>',
+    // Right: invoice details box
+    '<div style="border:1px solid #ccc;min-width:200px">',
+    '<table style="width:100%;border-collapse:collapse">',
+    '<tr><td style="padding:8px 12px;border-bottom:1px solid #ccc;background:#f5f5f5;font-weight:700;font-size:11px">Fecha</td><td style="padding:8px 12px;border-bottom:1px solid #ccc">',fmtInvDate(data.fecha),'</td></tr>',
+    '<tr><td style="padding:8px 12px;border-bottom:1px solid #ccc;background:#f5f5f5;font-weight:700;font-size:11px">N.º Factura</td><td style="padding:8px 12px;border-bottom:1px solid #ccc">',data.numero,'</td></tr>',
+    '<tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:700;font-size:11px">Moneda</td><td style="padding:8px 12px">',data.moneda,'</td></tr>',
+    '</table></div></div>',
+
+    // Cliente + Consignatario
+    '<div style="display:flex;gap:16px;margin-bottom:20px">',
+    // Consignatario box
+    '<div style="border:1px solid #ccc;padding:10px 14px;flex:1">',
+    '<div style="font-weight:900;font-size:11px;margin-bottom:6px">CONSIGNATARIO:</div>',
+    '<div style="font-size:11px">',(c&&c.consignatario?c.consignatario:'EMPRESA EXPORTADORA DE ALIMENTOS Y PRODUCTOS VARIOS'),'</div>',
+    '</div>',
+    // Cliente info
+    '<div style="border:1px solid #ccc;flex:2">',
+    '<table style="width:100%;border-collapse:collapse">',
+    '<tr><td style="padding:8px 12px;border-bottom:1px solid #ccc;font-weight:700;background:#f5f5f5;width:140px;font-size:11px">CLIENTE FINAL:</td>',
+    '<td style="padding:8px 12px;border-bottom:1px solid #ccc">',(c?c.nombre+' CIF: '+(c.cif||''):''),'</td></tr>',
+    '<tr><td style="padding:8px 12px;font-weight:700;background:#f5f5f5;font-size:11px">DIRECCION:</td>',
+    '<td style="padding:8px 12px">',(c?c.direccion||'':''),'</td></tr>',
+    '</table></div></div>',
+
+    // Products table
+    '<table style="width:100%;border-collapse:collapse;margin-bottom:0">',
+    '<thead><tr style="background:#d0d0d0">',
+    '<th style="padding:12px 14px;text-align:left;border:1px solid #bbb;font-weight:900">Producto/Servicio</th>',
+    '<th style="padding:12px 14px;text-align:center;border:1px solid #bbb;font-weight:900;width:70px">UM</th>',
+    '<th style="padding:12px 14px;text-align:right;border:1px solid #bbb;font-weight:900;width:100px">CANTIDAD</th>',
+    '<th style="padding:12px 14px;text-align:right;border:1px solid #bbb;font-weight:900;width:100px">PRECIO U.</th>',
+    '<th style="padding:12px 14px;text-align:right;border:1px solid #bbb;font-weight:900;width:110px">IMPORTE</th>',
+    '</tr></thead><tbody>',lineasHTML,'',
+    // Subtotal rows
+    '<tr><td colspan="3" style="border:none"></td>',
+    '<td style="padding:10px 14px;border:1px solid #ddd;font-weight:700;background:#f9f9f9">Subtotal</td>',
+    '<td style="padding:10px 14px;border:1px solid #ddd;text-align:right;font-weight:700">$',data.subtotal.toLocaleString('es',{minimumFractionDigits:2,maximumFractionDigits:2}),'</td></tr>',
+    '<tr><td colspan="3" style="border:none"></td>',
+    '<td style="padding:10px 14px;border:1px solid #ddd;font-weight:700;background:#f9f9f9">Flete</td>',
+    '<td style="padding:10px 14px;border:1px solid #ddd;text-align:right">$',data.flete.toLocaleString('es',{minimumFractionDigits:2,maximumFractionDigits:2}),'</td></tr>',
+    '<tr><td colspan="3" style="border:none"></td>',
+    '<td style="padding:10px 14px;border:1px solid #ddd;font-weight:700;background:#f9f9f9">Seguro</td>',
+    '<td style="padding:10px 14px;border:1px solid #ddd;text-align:right">$',data.seguro.toLocaleString('es',{minimumFractionDigits:2,maximumFractionDigits:2}),'</td></tr>',
+    '<tr><td colspan="3" style="border:none"></td>',
+    '<td style="padding:10px 14px;border:1px solid #ddd;font-weight:900;background:#d0d0d0">Total</td>',
+    '<td style="padding:10px 14px;border:1px solid #ddd;text-align:right;font-weight:900;font-size:14px">$',data.total.toLocaleString('es',{minimumFractionDigits:2,maximumFractionDigits:2}),'</td></tr>',
+    '</tbody></table>',
+
+    // Condiciones + Banco
+    '<div style="display:flex;gap:16px;margin-top:20px;align-items:flex-start">',
+    '<div style="flex:1">',
+    '<table style="width:100%;border-collapse:collapse">',
+    '<tr><td style="padding:8px 12px;border:1px solid #ccc;font-weight:700;background:#f5f5f5;font-size:11px">CONDICIÓN: ',data.condicion,'</td>',
+    '<td style="padding:8px 12px;border:1px solid #ccc;font-weight:700">',data.incoterm,'</td></tr>',
+    '<tr><td style="padding:8px 12px;border:1px solid #ccc;font-weight:700;background:#f5f5f5;font-size:11px">ORIGEN</td>',
+    '<td style="padding:8px 12px;border:1px solid #ccc">',data.origen,'</td></tr>',
+    '<tr><td style="padding:8px 12px;border:1px solid #ccc;font-weight:700;background:#f5f5f5;font-size:11px">PUERTO DE EMBARQUE</td>',
+    '<td style="padding:8px 12px;border:1px solid #ccc">',data.puerto,'</td></tr>',
+    '</table></div>',
+    // Firma
+    '<div style="flex:1;text-align:right;padding-top:10px">',
+    '<div style="font-size:11px;line-height:1.9">',
+    '<strong>Banco: JPMORGAN CHASE BANK, N.A</strong><br>',
+    'Dirección del banco: 8700 Coral Wy, Miami, FL 33165<br>',
+    'SWIFT: 267084131<br>',
+    'IBAN/Cuenta: 960559521 USD',
+    '</div>',
+    '<div style="margin-top:20px;font-style:italic;font-size:13px">',
+    '<em>Presidente</em><br>',
+    '<strong style="font-size:14px">Alejandro De Lara</strong>',
+    '</div></div></div>',
+    '</body></html>'
+  ];
+
+  const html = partes.join('');
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, '_blank');
+  if (!win) { toast('Permite ventanas emergentes en Safari', 'error'); }
+  else { setTimeout(() => { try { win.print(); } catch(e){} }, 1200); }
+  setTimeout(() => URL.revokeObjectURL(url), 20000);
+}
+
+function renderInvoices() {
+  const tbody = document.getElementById('invoicesTable');
+  if (!invoices.length) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Sin invoices aún</div></div></td></tr>`;
+    return;
+  }
+  const rows = [...invoices].sort((a,b) => a.fecha < b.fecha ? -1 : 1);
+  tbody.innerHTML = rows.map(inv => {
+    const c = clientes.find(x => x.id === inv.clienteId);
+    return `<tr>
+      <td>${fmtDate(inv.fecha)}</td>
+      <td class="mono">${inv.numero}</td>
+      <td>${c ? c.nombre : '—'}</td>
+      <td class="mono amount-pos">${fmtUSD(inv.total)}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-primary btn-sm" onclick="abrirInvoicePDF(invoices.find(x=>x.id==='${inv.id}'))">📋 Ver PDF</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteInvoice('${inv.id}')">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function deleteInvoice(id) {
+  if (!confirm('¿Eliminar invoice?')) return;
+  invoices = invoices.filter(x => x.id !== id);
+  saveInvoicesDB();
+  renderInvoices();
+  updateBadges();
+  toast('Invoice eliminada');
+}
+
 // ═══ BADGES ═══
 function updateBadges() {
   document.getElementById('badge-clientes').textContent = clientes.length;
   document.getElementById('badge-mercancias').textContent = mercancias.length;
   document.getElementById('badge-facturas').textContent = facturas.length;
   document.getElementById('badge-pagos').textContent = pagos.length;
+  document.getElementById('badge-invoices').textContent = invoices.length;
 }
 
 // ═══ DATE HEADER ═══
@@ -1267,6 +1724,7 @@ function updateDate() {
 // ═══ INIT ═══
 updateDate();
 setInterval(updateDate, 60000);
+invoices = DB.get('invoices');
 updateBadges();
 renderDashboard();
 
