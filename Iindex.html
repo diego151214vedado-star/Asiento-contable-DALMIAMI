@@ -9,974 +9,202 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root {
-    --red: #E8202A;
-    --red-dark: #b01820;
-    --blue: #1A3CCC;
-    --blue-dark: #1030aa;
-    --white: #F8F8F6;
-    --bg: #0E0E12;
-    --surface: #16161C;
-    --surface2: #1E1E26;
-    --surface3: #26262F;
-    --border: #2E2E3A;
-    --text: #F0F0EE;
-    --text2: #9090A0;
-    --green: #22C55E;
-    --orange: #F59E0B;
-    --pink: #FF6B6B;
+    --red: #E8202A; --red-dark: #b01820; --blue: #1A3CCC; --blue-dark: #1030aa;
+    --bg: #0E0E12; --surface: #16161C; --surface2: #1E1E26; --surface3: #26262F;
+    --border: #2E2E3A; --text: #F0F0EE; --text2: #9090A0;
+    --green: #22C55E; --orange: #F59E0B; --pink: #FF6B6B;
   }
-
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* ─── HEADER ─── */
-  header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 0 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 68px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-
-  .logo-icon {
-    width: 42px;
-    height: 42px;
-    position: relative;
-    flex-shrink: 0;
-  }
-
-  .logo-icon .half-l {
-    position: absolute; left: 0; top: 4px;
-    width: 20px; height: 34px;
-    background: var(--red);
-    border-radius: 0 20px 20px 0;
-    clip-path: polygon(0 15%, 100% 0%, 100% 100%, 0 85%);
-  }
-
-  .logo-icon .half-r {
-    position: absolute; right: 0; top: 4px;
-    width: 20px; height: 34px;
-    background: var(--blue);
-    border-radius: 20px 0 0 20px;
-    clip-path: polygon(0 0%, 100% 15%, 100% 85%, 0 100%);
-  }
-
-  .logo-text {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px;
-    letter-spacing: 2px;
-    line-height: 1;
-  }
-
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 68px; position: sticky; top: 0; z-index: 100; }
+  .logo { display: flex; align-items: center; gap: 14px; }
+  .logo-icon { width: 42px; height: 42px; position: relative; flex-shrink: 0; }
+  .logo-icon .half-l { position: absolute; left: 0; top: 4px; width: 20px; height: 34px; background: var(--red); border-radius: 0 20px 20px 0; clip-path: polygon(0 15%, 100% 0%, 100% 100%, 0 85%); }
+  .logo-icon .half-r { position: absolute; right: 0; top: 4px; width: 20px; height: 34px; background: var(--blue); border-radius: 20px 0 0 20px; clip-path: polygon(0 0%, 100% 15%, 100% 85%, 0 100%); }
+  .logo-text { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; line-height: 1; }
   .logo-text span { color: var(--red); }
-  .logo-sub {
-    font-size: 10px;
-    color: var(--text2);
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    margin-top: 2px;
-  }
-
-  .header-date {
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    color: var(--text2);
-    text-align: right;
-  }
-
-  /* ─── NAV TABS ─── */
-  nav {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding: 0 16px;
-  }
-
+  .logo-sub { font-size: 10px; color: var(--text2); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px; }
+  .header-date { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text2); text-align: right; }
+  nav { background: var(--surface); border-bottom: 1px solid var(--border); display: flex; overflow-x: auto; scrollbar-width: none; padding: 0 16px; }
   nav::-webkit-scrollbar { display: none; }
-
-  .nav-tab {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 0 20px;
-    height: 52px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text2);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    white-space: nowrap;
-    transition: all .2s;
-    background: none;
-    border-top: none;
-    border-left: none;
-    border-right: none;
-    font-family: 'DM Sans', sans-serif;
-  }
-
+  .nav-tab { display: flex; align-items: center; gap: 8px; padding: 0 20px; height: 52px; font-size: 13px; font-weight: 500; color: var(--text2); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all .2s; background: none; border-top: none; border-left: none; border-right: none; font-family: 'DM Sans', sans-serif; }
   .nav-tab:hover { color: var(--text); }
-
-  .nav-tab.active {
-    color: var(--text);
-    border-bottom-color: var(--red);
-  }
-
-  .nav-tab .tab-icon { font-size: 16px; }
-
-  .badge {
-    background: var(--red);
-    color: white;
-    font-size: 10px;
-    font-weight: 600;
-    padding: 1px 6px;
-    border-radius: 10px;
-    font-family: 'DM Mono', monospace;
-  }
-
-  /* ─── MAIN ─── */
-  main {
-    padding: 24px;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
+  .nav-tab.active { color: var(--text); border-bottom-color: var(--red); }
+  .badge { background: var(--red); color: white; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 10px; font-family: 'DM Mono', monospace; }
+  main { padding: 24px; max-width: 1200px; margin: 0 auto; }
   .section { display: none; }
   .section.active { display: block; }
-
-  /* ─── PAGE HEADER ─── */
-  .page-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 28px;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-
-  .page-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 36px;
-    letter-spacing: 2px;
-    line-height: 1;
-  }
-
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 16px; }
+  .page-title { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 2px; line-height: 1; }
   .page-title span { color: var(--red); }
-
-  .page-sub {
-    font-size: 13px;
-    color: var(--text2);
-    margin-top: 4px;
-  }
-
-  /* ─── BUTTONS ─── */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 22px;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: all .15s;
-    font-family: 'DM Sans', sans-serif;
-    letter-spacing: .3px;
-  }
-
-  .btn-primary {
-    background: var(--red);
-    color: white;
-  }
-
+  .page-sub { font-size: 13px; color: var(--text2); margin-top: 4px; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all .15s; font-family: 'DM Sans', sans-serif; letter-spacing: .3px; }
+  .btn-primary { background: var(--red); color: white; }
   .btn-primary:hover { background: var(--red-dark); transform: translateY(-1px); }
-
-  .btn-secondary {
-    background: var(--surface3);
-    color: var(--text);
-    border: 1px solid var(--border);
-  }
-
+  .btn-secondary { background: var(--surface3); color: var(--text); border: 1px solid var(--border); }
   .btn-secondary:hover { background: var(--surface2); }
-
-  .btn-blue {
-    background: var(--blue);
-    color: white;
-  }
-
+  .btn-blue { background: var(--blue); color: white; }
   .btn-blue:hover { background: var(--blue-dark); transform: translateY(-1px); }
-
-  .btn-sm {
-    padding: 7px 14px;
-    font-size: 12px;
-    border-radius: 8px;
-  }
-
-  .btn-danger {
-    background: transparent;
-    color: var(--pink);
-    border: 1px solid var(--pink);
-  }
-
+  .btn-sm { padding: 7px 14px; font-size: 12px; border-radius: 8px; }
+  .btn-danger { background: transparent; color: var(--pink); border: 1px solid var(--pink); }
   .btn-danger:hover { background: rgba(255,107,107,.1); }
-
-  /* ─── CARDS GRID ─── */
-  .cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
-    margin-bottom: 32px;
-  }
-
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 20px;
-    transition: border-color .2s;
-  }
-
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; transition: border-color .2s; }
   .card:hover { border-color: var(--red); }
-
-  .card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 14px;
-  }
-
-  .card-name {
-    font-size: 15px;
-    font-weight: 600;
-  }
-
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .card-name { font-size: 15px; font-weight: 600; }
   .card-actions { display: flex; gap: 6px; }
-
-  .card-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 6px 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 13px;
-  }
-
+  .card-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
   .card-row:last-child { border-bottom: none; }
   .card-label { color: var(--text2); }
-
-  .card-value {
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-  }
-
-  /* ─── STAT CARDS ─── */
-  .stats-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
-    margin-bottom: 28px;
-  }
-
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 20px;
-  }
-
-  .stat-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: var(--text2);
-    margin-bottom: 8px;
-  }
-
-  .stat-value {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 28px;
-    letter-spacing: 1px;
-    line-height: 1;
-  }
-
-  .stat-value.red { color: var(--red); }
-  .stat-value.green { color: var(--green); }
-  .stat-value.orange { color: var(--orange); }
-  .stat-value.blue { color: #6B9FFF; }
-
-  /* ─── MODAL ─── */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.75);
-    z-index: 200;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    backdrop-filter: blur(4px);
-  }
-
+  .card-value { font-family: 'DM Mono', monospace; font-size: 12px; }
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+  .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text2); margin-bottom: 8px; }
+  .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 1px; line-height: 1; }
+  .stat-value.red { color: var(--red); } .stat-value.green { color: var(--green); } .stat-value.orange { color: var(--orange); } .stat-value.blue { color: #6B9FFF; }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 200; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
   .modal-overlay.open { display: flex; }
-
-  .modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 32px;
-    width: 100%;
-    max-width: 520px;
-    max-height: 90vh;
-    overflow-y: auto;
-    animation: slideUp .25s ease;
-  }
-
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .modal-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 28px;
-    letter-spacing: 2px;
-    margin-bottom: 24px;
-  }
-
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 32px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; animation: slideUp .25s ease; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; margin-bottom: 24px; }
   .modal-title span { color: var(--red); }
-
-  /* ─── FORM ─── */
-  .form-group {
-    margin-bottom: 18px;
-  }
-
-  label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--text2);
-    margin-bottom: 8px;
-  }
-
-  input, select, textarea {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 14px;
-    color: var(--text);
-    font-size: 14px;
-    font-family: 'DM Sans', sans-serif;
-    transition: border-color .2s;
-    outline: none;
-  }
-
-  input:focus, select:focus, textarea:focus {
-    border-color: var(--red);
-  }
-
+  .form-group { margin-bottom: 18px; }
+  label { display: block; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); margin-bottom: 8px; }
+  input, select, textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; color: var(--text); font-size: 14px; font-family: 'DM Sans', sans-serif; transition: border-color .2s; outline: none; }
+  input:focus, select:focus, textarea:focus { border-color: var(--red); }
   select option { background: var(--surface2); }
-
-  .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-  }
-
-  .form-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 24px;
-    justify-content: flex-end;
-  }
-
-  /* ─── TABLE ─── */
-  .table-wrapper {
-    overflow-x: auto;
-    border-radius: 14px;
-    border: 1px solid var(--border);
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-
-  thead {
-    background: var(--surface2);
-  }
-
-  th {
-    padding: 14px 16px;
-    text-align: left;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    color: var(--text2);
-    font-weight: 600;
-    white-space: nowrap;
-    border-bottom: 1px solid var(--border);
-  }
-
-  td {
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--border);
-    vertical-align: middle;
-  }
-
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-actions { display: flex; gap: 10px; margin-top: 24px; justify-content: flex-end; }
+  .table-wrapper { overflow-x: auto; border-radius: 14px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead { background: var(--surface2); }
+  th { padding: 14px 16px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text2); font-weight: 600; white-space: nowrap; border-bottom: 1px solid var(--border); }
+  td { padding: 14px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
   tr:last-child td { border-bottom: none; }
-
   tr:hover td { background: var(--surface2); }
-
-  .mono {
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-  }
-
-  /* ─── ESTATUS BADGES ─── */
-  .status {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-
+  .mono { font-family: 'DM Mono', monospace; font-size: 12px; }
+  .status { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
   .status-pagado { background: rgba(34,197,94,.15); color: var(--green); }
   .status-parcial { background: rgba(245,158,11,.15); color: var(--orange); }
   .status-pendiente { background: rgba(255,107,107,.15); color: var(--pink); }
-
-  .amount-pos { color: var(--green); }
-  .amount-neg { color: var(--pink); }
-  .amount-zero { color: var(--text2); }
-
-  /* ─── FILTERS ─── */
-  .filters {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-  }
-
-  .filters select, .filters input {
-    width: auto;
-    padding: 9px 14px;
-    font-size: 13px;
-  }
-
-  /* ─── EMPTY STATE ─── */
-  .empty {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--text2);
-  }
-
+  .amount-pos { color: var(--green); } .amount-neg { color: var(--pink); } .amount-zero { color: var(--text2); }
+  .filters { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+  .filters select, .filters input { width: auto; padding: 9px 14px; font-size: 13px; }
+  .empty { text-align: center; padding: 60px 20px; color: var(--text2); }
   .empty-icon { font-size: 48px; margin-bottom: 12px; }
   .empty-text { font-size: 15px; margin-bottom: 6px; color: var(--text); }
   .empty-sub { font-size: 13px; }
+  #toast { position: fixed; bottom: 32px; right: 32px; background: var(--surface3); border: 1px solid var(--border); color: var(--text); padding: 14px 20px; border-radius: 12px; font-size: 13px; font-weight: 500; z-index: 999; transform: translateY(80px); opacity: 0; transition: all .3s ease; display: flex; align-items: center; gap: 8px; }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.success { border-color: var(--green); } #toast.error { border-color: var(--pink); }
+  .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text2); margin-bottom: 16px; }
+  @media (max-width: 600px) { main { padding: 16px; } .form-row { grid-template-columns: 1fr; } .modal { padding: 24px; } .page-title { font-size: 28px; } }
 
-  /* ─── TOAST ─── */
-  #toast {
-    position: fixed;
-    bottom: 32px;
-    right: 32px;
-    background: var(--surface3);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 14px 20px;
-    border-radius: 12px;
-    font-size: 13px;
-    font-weight: 500;
-    z-index: 999;
-    transform: translateY(80px);
-    opacity: 0;
-    transition: all .3s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  #toast.show {
-    transform: translateY(0);
-    opacity: 1;
-  }
-
-  #toast.success { border-color: var(--green); }
-  #toast.error { border-color: var(--pink); }
-
-  /* ─── DIVIDER ─── */
-  .divider {
-    height: 1px;
-    background: var(--border);
-    margin: 24px 0;
-  }
-
-  .section-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: var(--text2);
-    margin-bottom: 16px;
-  }
-
-  /* ─── CONCILIACIÓN MODAL ─── */
-  .conc-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.85);
-    z-index: 300;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 20px;
-    overflow-y: auto;
-    backdrop-filter: blur(6px);
-  }
+  /* CONCILIACION */
+  .conc-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 300; align-items: flex-start; justify-content: center; padding: 20px; overflow-y: auto; backdrop-filter: blur(6px); }
   .conc-overlay.open { display: flex; }
-
-  .conc-container {
-    background: #fff;
-    color: #111;
-    width: 100%;
-    max-width: 780px;
-    border-radius: 16px;
-    overflow: hidden;
-    margin: auto;
-    box-shadow: 0 40px 80px rgba(0,0,0,.5);
-  }
-
-  .conc-toolbar {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 14px 20px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
-
-  .conc-toolbar label {
-    color: var(--text2);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 0;
-  }
-
-  .conc-toolbar input[type=date] {
-    width: auto;
-    padding: 8px 12px;
-    font-size: 13px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    border-radius: 8px;
-  }
-
-  .conc-toolbar-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
+  .conc-container { background: #fff; color: #111; width: 100%; max-width: 780px; border-radius: 16px; overflow: hidden; margin: auto; box-shadow: 0 40px 80px rgba(0,0,0,.5); }
+  .conc-toolbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; position: sticky; top: 0; z-index: 10; }
+  .conc-toolbar label { color: var(--text2); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0; }
+  .conc-toolbar input[type=date] { width: auto; padding: 8px 12px; font-size: 13px; background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; }
+  .conc-toolbar-group { display: flex; align-items: center; gap: 8px; }
   .conc-spacer { flex: 1; }
-
-  /* ─── DOCUMENTO ─── */
-  .conc-doc {
-    padding: 48px 52px;
-    font-family: 'DM Sans', sans-serif;
-    color: #1a1a1a;
-    background: #fff;
-  }
-
-  .conc-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 36px;
-    padding-bottom: 24px;
-    border-bottom: 3px solid #E8202A;
-  }
-
-  .conc-brand-name {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 28px;
-    letter-spacing: 3px;
-    color: #1a1a1a;
-    line-height: 1;
-  }
-
+  .conc-doc { padding: 40px 48px; font-family: 'DM Sans', sans-serif; color: #1a1a1a; background: #fff; }
+  .conc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 3px solid #E8202A; }
+  .conc-brand-name { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 3px; color: #1a1a1a; line-height: 1; }
   .conc-brand-name span { color: #E8202A; }
-
-  .conc-brand-info {
-    font-size: 11px;
-    color: #666;
-    margin-top: 6px;
-    line-height: 1.7;
-  }
-
-  .conc-doc-meta {
-    text-align: right;
-    font-size: 12px;
-    color: #555;
-    line-height: 1.8;
-  }
-
-  .conc-doc-meta strong {
-    font-size: 14px;
-    color: #1a1a1a;
-    display: block;
-    font-family: 'Bebas Neue', sans-serif;
-    letter-spacing: 2px;
-    font-size: 18px;
-  }
-
-  .conc-client-box {
-    background: #f5f5f5;
-    border-left: 4px solid #E8202A;
-    padding: 16px 20px;
-    border-radius: 0 8px 8px 0;
-    margin-bottom: 28px;
-  }
-
-  .conc-client-label {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: #888;
-    margin-bottom: 4px;
-  }
-
-  .conc-client-name {
-    font-size: 20px;
-    font-weight: 700;
-    color: #1a1a1a;
-  }
-
-  .conc-periodo {
-    font-size: 12px;
-    color: #555;
-    margin-top: 4px;
-  }
-
-  /* tabla movimientos */
-  .conc-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-    margin-bottom: 28px;
-  }
-
-  .conc-table thead tr {
-    background: #1a1a1a;
-    color: #fff;
-  }
-
-  .conc-table th {
-    padding: 10px 12px;
-    text-align: left;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-weight: 600;
-    border: none;
-  }
-
-  .conc-table th.right,
-  .conc-table td.right { text-align: right; }
-
-  .conc-table td {
-    padding: 10px 12px;
-    border-bottom: 1px solid #e8e8e8;
-    vertical-align: middle;
-    color: #1a1a1a;
-  }
-
-  .conc-table tr:hover td { background: #fafafa; }
-
-  .conc-row-factura td { background: #fffbf0; }
-  .conc-row-pago td { background: #f0fff4; }
-
-  .conc-tipo {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .5px;
-    padding: 3px 8px;
-    border-radius: 4px;
-  }
-
-  .tipo-factura { background: #fff3cd; color: #92600a; }
-  .tipo-pago { background: #d1fae5; color: #065f46; }
-  .tipo-favor { background: #dbeafe; color: #1e40af; }
-
-  .conc-saldo-pos { color: #dc2626; font-weight: 600; }
-  .conc-saldo-neg { color: #16a34a; font-weight: 600; }
-  .conc-saldo-zero { color: #888; }
-
-  /* resumen */
-  .conc-resumen {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 28px;
-  }
-
-  .conc-res-box {
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 14px 16px;
-    text-align: center;
-  }
-
-  .conc-res-label {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #888;
-    margin-bottom: 6px;
-  }
-
-  .conc-res-val {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px;
-    letter-spacing: 1px;
-  }
-
-  .conc-res-val.rojo { color: #dc2626; }
-  .conc-res-val.verde { color: #16a34a; }
-  .conc-res-val.azul { color: #1A3CCC; }
-
-  /* nota final */
-  .conc-nota {
-    border-radius: 10px;
-    padding: 20px 24px;
-    font-size: 13px;
-    line-height: 1.7;
-    margin-bottom: 32px;
-  }
-
-  .conc-nota.deuda {
-    background: #fff1f2;
-    border: 1px solid #fecdd3;
-    border-left: 4px solid #E8202A;
-  }
-
-  .conc-nota.favor {
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    border-left: 4px solid #16a34a;
-  }
-
-  .conc-nota.saldado {
-    background: #f0f9ff;
-    border: 1px solid #bae6fd;
-    border-left: 4px solid #1A3CCC;
-  }
-
-  .conc-nota-title {
-    font-weight: 700;
-    font-size: 14px;
-    margin-bottom: 6px;
-  }
-
-  .conc-footer {
-    border-top: 1px solid #e0e0e0;
-    padding-top: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    font-size: 11px;
-    color: #888;
-  }
-
-  .conc-firma {
-    text-align: right;
-  }
-
-  .conc-firma-line {
-    width: 180px;
-    border-bottom: 1px solid #aaa;
-    margin-bottom: 6px;
-    height: 36px;
-  }
-
-  /* ─── PRINT ─── */
-  @media print {
-    body > *:not(#conciliacionOverlay) { display: none !important; }
-    #conciliacionOverlay { 
-      display: block !important;
-      position: static !important;
-      background: none !important;
-      padding: 0 !important;
-    }
-    .conc-toolbar { display: none !important; }
-    .conc-container {
-      box-shadow: none !important;
-      border-radius: 0 !important;
-      max-width: 100% !important;
-    }
-    .conc-doc { padding: 20px 28px !important; }
-    @page { margin: 1cm; size: A4; }
-  }
+  .conc-brand-info { font-size: 11px; color: #666; margin-top: 6px; line-height: 1.7; }
+  .conc-doc-meta { text-align: right; font-size: 12px; color: #555; line-height: 1.8; }
+  .conc-doc-meta strong { font-size: 16px; color: #1a1a1a; display: block; font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
+  .conc-client-box { background: #f5f5f5; border-left: 4px solid #E8202A; padding: 14px 18px; border-radius: 0 8px 8px 0; margin-bottom: 24px; }
+  .conc-client-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: #888; margin-bottom: 4px; }
+  .conc-client-name { font-size: 18px; font-weight: 700; color: #1a1a1a; }
+  .conc-periodo { font-size: 12px; color: #555; margin-top: 4px; }
+  .conc-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 24px; }
+  .conc-table thead tr { background: #1a1a1a; color: #fff; }
+  .conc-table th { padding: 10px 12px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; border: none; }
+  .conc-table th.right, .conc-table td.right { text-align: right; }
+  .conc-table td { padding: 10px 12px; border-bottom: 1px solid #e8e8e8; vertical-align: middle; color: #1a1a1a; }
+  .conc-row-factura td { background: #fffbf0; } .conc-row-pago td { background: #f0fff4; }
+  .conc-tipo { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; padding: 3px 8px; border-radius: 4px; }
+  .tipo-factura { background: #fff3cd; color: #92600a; } .tipo-pago { background: #d1fae5; color: #065f46; } .tipo-favor { background: #dbeafe; color: #1e40af; }
+  .conc-saldo-pos { color: #dc2626; font-weight: 600; } .conc-saldo-neg { color: #16a34a; font-weight: 600; } .conc-saldo-zero { color: #888; }
+  .conc-resumen { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+  .conc-res-box { border: 1px solid #e0e0e0; border-radius: 8px; padding: 14px 16px; text-align: center; }
+  .conc-res-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 6px; }
+  .conc-res-val { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; }
+  .conc-res-val.rojo { color: #dc2626; } .conc-res-val.verde { color: #16a34a; } .conc-res-val.azul { color: #1A3CCC; }
+  .conc-nota { border-radius: 10px; padding: 18px 22px; font-size: 13px; line-height: 1.7; margin-bottom: 28px; }
+  .conc-nota.deuda { background: #fff1f2; border: 1px solid #fecdd3; border-left: 4px solid #E8202A; }
+  .conc-nota.favor { background: #f0fdf4; border: 1px solid #bbf7d0; border-left: 4px solid #16a34a; }
+  .conc-nota.saldado { background: #f0f9ff; border: 1px solid #bae6fd; border-left: 4px solid #1A3CCC; }
+  .conc-nota-title { font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+  .conc-footer { border-top: 1px solid #e0e0e0; padding-top: 18px; display: flex; justify-content: space-between; align-items: flex-end; font-size: 11px; color: #888; }
+  .conc-firma-line { width: 180px; border-bottom: 1px solid #aaa; margin-bottom: 6px; height: 32px; }
+  @media print { body > *:not(#conciliacionOverlay) { display: none !important; } #conciliacionOverlay { display: block !important; position: static !important; background: none !important; padding: 0 !important; } .conc-toolbar { display: none !important; } .conc-container { box-shadow: none !important; border-radius: 0 !important; max-width: 100% !important; } @page { margin: 1cm; size: A4; } }
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <header>
   <div class="logo">
-    <div class="logo-icon">
-      <div class="half-l"></div>
-      <div class="half-r"></div>
-    </div>
-    <div>
-      <div class="logo-text"><span>DAL</span> MIAMI</div>
-      <div class="logo-sub">Export LLC — Libro de Asiento</div>
-    </div>
+    <div class="logo-icon"><div class="half-l"></div><div class="half-r"></div></div>
+    <div><div class="logo-text"><span>DAL</span> MIAMI</div><div class="logo-sub">Export LLC — Libro de Asiento</div></div>
   </div>
   <div class="header-date" id="headerDate"></div>
 </header>
 
-<!-- NAV -->
 <nav>
-  <button class="nav-tab active" onclick="showSection('dashboard')" id="tab-dashboard">
-    <span class="tab-icon">📊</span> Dashboard
-  </button>
-  <button class="nav-tab" onclick="showSection('clientes')" id="tab-clientes">
-    <span class="tab-icon">👤</span> Clientes
-    <span class="badge" id="badge-clientes">0</span>
-  </button>
-  <button class="nav-tab" onclick="showSection('mercancias')" id="tab-mercancias">
-    <span class="tab-icon">📦</span> Mercancías
-    <span class="badge" id="badge-mercancias">0</span>
-  </button>
-  <button class="nav-tab" onclick="showSection('facturas')" id="tab-facturas">
-    <span class="tab-icon">🧾</span> Facturas
-    <span class="badge" id="badge-facturas">0</span>
-  </button>
-  <button class="nav-tab" onclick="showSection('pagos')" id="tab-pagos">
-    <span class="tab-icon">💰</span> Pagos
-    <span class="badge" id="badge-pagos">0</span>
-  </button>
+  <button class="nav-tab active" onclick="showSection('dashboard')" id="tab-dashboard"><span>📊</span> Dashboard</button>
+  <button class="nav-tab" onclick="showSection('clientes')" id="tab-clientes"><span>👤</span> Clientes <span class="badge" id="badge-clientes">0</span></button>
+  <button class="nav-tab" onclick="showSection('mercancias')" id="tab-mercancias"><span>📦</span> Mercancías <span class="badge" id="badge-mercancias">0</span></button>
+  <button class="nav-tab" onclick="showSection('facturas')" id="tab-facturas"><span>🧾</span> Facturas <span class="badge" id="badge-facturas">0</span></button>
+  <button class="nav-tab" onclick="showSection('pagos')" id="tab-pagos"><span>💰</span> Pagos <span class="badge" id="badge-pagos">0</span></button>
 </nav>
 
-<!-- MAIN -->
 <main>
-
-  <!-- ═══ DASHBOARD ═══ -->
+  <!-- DASHBOARD -->
   <div class="section active" id="section-dashboard">
     <div class="page-header">
-      <div>
-        <div class="page-title">RESUMEN <span>GENERAL</span></div>
-        <div class="page-sub">Vista rápida del estado financiero</div>
-      </div>
-      <button class="btn btn-primary" id="btnCompartirDash" onclick="compartirDashboard()">
-        ⬆️ Compartir PDF
-      </button>
+      <div><div class="page-title">RESUMEN <span>GENERAL</span></div><div class="page-sub">Vista rápida del estado financiero</div></div>
+      <button class="btn btn-primary" id="btnCompartirDash" onclick="compartirDashboard()">⬆️ Compartir PDF</button>
     </div>
-
     <div id="dashboardContenido">
       <div class="stats-row" id="statsRow"></div>
       <div class="section-label">Facturas recientes</div>
       <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>N° Factura</th>
-              <th>Cliente</th>
-              <th>Mercancía</th>
-              <th>Saldo Factura</th>
-              <th>Ingreso</th>
-              <th>Saldo</th>
-              <th>Estatus</th>
-            </tr>
-          </thead>
-          <tbody id="dashboardTable"></tbody>
-        </table>
+        <table><thead><tr><th>Fecha</th><th>N° Factura</th><th>Cliente</th><th>Mercancía</th><th>Saldo Factura</th><th>Ingreso</th><th>Saldo</th><th>Estatus</th></tr></thead><tbody id="dashboardTable"></tbody></table>
       </div>
     </div>
   </div>
 
-  <!-- ═══ CLIENTES ═══ -->
+  <!-- CLIENTES -->
   <div class="section" id="section-clientes">
     <div class="page-header">
-      <div>
-        <div class="page-title">ALTA DE <span>CLIENTES</span></div>
-        <div class="page-sub">Administra tu cartera de clientes</div>
-      </div>
-      <button class="btn btn-primary" onclick="openModal('modalCliente')">
-        ＋ Nuevo Cliente
-      </button>
+      <div><div class="page-title">ALTA DE <span>CLIENTES</span></div><div class="page-sub">Administra tu cartera de clientes</div></div>
+      <button class="btn btn-primary" onclick="openModal('modalCliente')">＋ Nuevo Cliente</button>
     </div>
-
     <div id="clientesGrid" class="cards-grid"></div>
   </div>
 
-  <!-- ═══ MERCANCÍAS ═══ -->
+  <!-- MERCANCÍAS -->
   <div class="section" id="section-mercancias">
     <div class="page-header">
-      <div>
-        <div class="page-title">ALTA DE <span>MERCANCÍA</span></div>
-        <div class="page-sub">Catálogo de productos exportados</div>
-      </div>
-      <button class="btn btn-primary" onclick="openModal('modalMercancia')">
-        ＋ Nueva Mercancía
-      </button>
+      <div><div class="page-title">ALTA DE <span>MERCANCÍA</span></div><div class="page-sub">Catálogo de productos exportados</div></div>
+      <button class="btn btn-primary" onclick="openModal('modalMercancia')">＋ Nueva Mercancía</button>
     </div>
-
     <div id="mercanciasGrid" class="cards-grid"></div>
   </div>
 
-  <!-- ═══ FACTURAS ═══ -->
+  <!-- FACTURAS -->
   <div class="section" id="section-facturas">
     <div class="page-header">
-      <div>
-        <div class="page-title">REGISTRO DE <span>FACTURAS</span></div>
-        <div class="page-sub">Control de facturas emitidas</div>
-      </div>
-      <button class="btn btn-primary" onclick="openModal('modalFactura')">
-        ＋ Nueva Factura
-      </button>
+      <div><div class="page-title">REGISTRO DE <span>FACTURAS</span></div><div class="page-sub">Control de facturas emitidas</div></div>
+      <button class="btn btn-primary" onclick="openModal('modalFactura')">＋ Nueva Factura</button>
     </div>
-
     <div class="filters">
-      <select id="filtroClienteFactura" onchange="renderFacturas()">
-        <option value="">Todos los clientes</option>
-      </select>
+      <select id="filtroClienteFactura" onchange="renderFacturas()"><option value="">Todos los clientes</option></select>
       <select id="filtroEstatus" onchange="renderFacturas()">
         <option value="">Todos los estatus</option>
         <option value="Pagado">✅ Pagado</option>
@@ -984,94 +212,38 @@
         <option value="Pendiente">🔴 Pendiente</option>
       </select>
     </div>
-
     <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>Fecha</th>
-            <th>N° Factura</th>
-            <th>Cliente</th>
-            <th>Mercancía</th>
-            <th>Saldo a Favor</th>
-            <th>Saldo Factura</th>
-            <th>Ingreso</th>
-            <th>Saldo Pendiente</th>
-            <th>Estatus</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="facturasTable"></tbody>
-      </table>
+      <table><thead><tr><th>Fecha</th><th>N° Factura</th><th>Cliente</th><th>Mercancía</th><th>Saldo a Favor</th><th>Saldo Factura</th><th>Ingreso</th><th>Saldo Pendiente</th><th>Estatus</th><th>Acciones</th></tr></thead><tbody id="facturasTable"></tbody></table>
     </div>
   </div>
 
-  <!-- ═══ PAGOS ═══ -->
+  <!-- PAGOS -->
   <div class="section" id="section-pagos">
     <div class="page-header">
-      <div>
-        <div class="page-title">REGISTRO DE <span>PAGOS</span></div>
-        <div class="page-sub">Ingresos recibidos por factura</div>
-      </div>
-      <button class="btn btn-blue" onclick="openModal('modalPago')">
-        ＋ Registrar Pago
-      </button>
+      <div><div class="page-title">REGISTRO DE <span>PAGOS</span></div><div class="page-sub">Ingresos recibidos por factura</div></div>
+      <button class="btn btn-blue" onclick="openModal('modalPago')">＋ Registrar Pago</button>
     </div>
-
     <div class="filters">
-      <select id="filtroClientePago" onchange="renderPagos()">
-        <option value="">Todos los clientes</option>
-      </select>
+      <select id="filtroClientePago" onchange="renderPagos()"><option value="">Todos los clientes</option></select>
     </div>
-
     <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>Fecha</th>
-            <th>N° Factura</th>
-            <th>Cliente</th>
-            <th>Monto</th>
-            <th>Notas</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="pagosTable"></tbody>
-      </table>
+      <table><thead><tr><th>Fecha</th><th>N° Factura</th><th>Cliente</th><th>Monto</th><th>Notas</th><th>Acciones</th></tr></thead><tbody id="pagosTable"></tbody></table>
     </div>
   </div>
-
 </main>
 
-<!-- ═══ MODALES ═══ -->
-
-<!-- Modal Cliente -->
+<!-- MODAL CLIENTE -->
 <div class="modal-overlay" id="modalCliente">
   <div class="modal">
     <div class="modal-title" id="modalClienteTitle">NUEVO <span>CLIENTE</span></div>
     <input type="hidden" id="cl_id">
-    <div class="form-group">
-      <label>Nombre / Razón Social *</label>
-      <input type="text" id="cl_nombre" placeholder="Ej: La Catedral surl">
-    </div>
+    <div class="form-group"><label>Nombre / Razón Social *</label><input type="text" id="cl_nombre" placeholder="Ej: La Catedral surl"></div>
     <div class="form-row">
-      <div class="form-group">
-        <label>País</label>
-        <input type="text" id="cl_pais" placeholder="Ej: Bolivia">
-      </div>
-      <div class="form-group">
-        <label>Teléfono</label>
-        <input type="text" id="cl_telefono" placeholder="+1 000 000 0000">
-      </div>
+      <div class="form-group"><label>País</label><input type="text" id="cl_pais" placeholder="Ej: Cuba"></div>
+      <div class="form-group"><label>Teléfono</label><input type="text" id="cl_telefono" placeholder="+1 000 000 0000"></div>
     </div>
-    <div class="form-group">
-      <label>Email</label>
-      <input type="email" id="cl_email" placeholder="cliente@email.com">
-    </div>
-    <div class="form-group">
-      <label>Notas</label>
-      <textarea id="cl_notas" rows="2" placeholder="Información adicional..."></textarea>
-    </div>
+    <div class="form-group"><label>Email</label><input type="email" id="cl_email" placeholder="cliente@email.com"></div>
+    <div class="form-group"><label>Notas</label><textarea id="cl_notas" rows="2" placeholder="Información adicional..."></textarea></div>
     <div class="form-actions">
       <button class="btn btn-secondary" onclick="closeModal('modalCliente')">Cancelar</button>
       <button class="btn btn-primary" onclick="saveCliente()">Guardar Cliente</button>
@@ -1079,50 +251,21 @@
   </div>
 </div>
 
-<!-- Modal Mercancía -->
+<!-- MODAL MERCANCÍA -->
 <div class="modal-overlay" id="modalMercancia">
   <div class="modal">
     <div class="modal-title" id="modalMercanciaTitle">NUEVA <span>MERCANCÍA</span></div>
     <input type="hidden" id="mc_id">
-    <div class="form-group">
-      <label>Nombre del Producto *</label>
-      <input type="text" id="mc_nombre" placeholder="Ej: Frozen 4x10 Lb Poly-Bagged, Chicken Leg">
+    <div class="form-group"><label>Nombre del Producto *</label><input type="text" id="mc_nombre" placeholder="Ej: Frozen 4x10 Lb Poly-Bagged, Chicken Leg"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Código / SKU</label><input type="text" id="mc_codigo" placeholder="CHK-LEG-001"></div>
+      <div class="form-group"><label>Unidad</label><select id="mc_unidad"><option>Lb</option><option>Kg</option><option>Caja</option><option>Unidad</option><option>VP</option></select></div>
     </div>
     <div class="form-row">
-      <div class="form-group">
-        <label>Código / SKU</label>
-        <input type="text" id="mc_codigo" placeholder="Ej: CHK-LEG-001">
-      </div>
-      <div class="form-group">
-        <label>Unidad</label>
-        <select id="mc_unidad">
-          <option value="Lb">Lb</option>
-          <option value="Kg">Kg</option>
-          <option value="Caja">Caja</option>
-          <option value="Unidad">Unidad</option>
-          <option value="VP">VP</option>
-        </select>
-      </div>
+      <div class="form-group"><label>Precio base (US$)</label><input type="number" id="mc_precio" placeholder="0.00" step="0.01"></div>
+      <div class="form-group"><label>Categoría</label><select id="mc_categoria"><option value="Pollo">🐔 Pollo</option><option value="Cerdo">🐷 Cerdo</option><option value="Res">🐄 Res</option><option value="Otro">📦 Otro</option></select></div>
     </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Precio base (US$)</label>
-        <input type="number" id="mc_precio" placeholder="0.00" step="0.01">
-      </div>
-      <div class="form-group">
-        <label>Categoría</label>
-        <select id="mc_categoria">
-          <option value="Pollo">🐔 Pollo</option>
-          <option value="Cerdo">🐷 Cerdo</option>
-          <option value="Res">🐄 Res</option>
-          <option value="Otro">📦 Otro</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-group">
-      <label>Descripción</label>
-      <textarea id="mc_descripcion" rows="2" placeholder="Detalles del producto..."></textarea>
-    </div>
+    <div class="form-group"><label>Descripción</label><textarea id="mc_descripcion" rows="2"></textarea></div>
     <div class="form-actions">
       <button class="btn btn-secondary" onclick="closeModal('modalMercancia')">Cancelar</button>
       <button class="btn btn-primary" onclick="saveMercancia()">Guardar Mercancía</button>
@@ -1130,42 +273,20 @@
   </div>
 </div>
 
-<!-- Modal Factura -->
+<!-- MODAL FACTURA -->
 <div class="modal-overlay" id="modalFactura">
   <div class="modal">
     <div class="modal-title" id="modalFacturaTitle">NUEVA <span>FACTURA</span></div>
     <input type="hidden" id="fa_id">
     <div class="form-row">
-      <div class="form-group">
-        <label>Fecha *</label>
-        <input type="date" id="fa_fecha">
-      </div>
-      <div class="form-group">
-        <label>N° Factura *</label>
-        <input type="text" id="fa_numero" placeholder="Ej: 2608">
-      </div>
+      <div class="form-group"><label>Fecha *</label><input type="date" id="fa_fecha"></div>
+      <div class="form-group"><label>N° Factura *</label><input type="text" id="fa_numero" placeholder="2608"></div>
     </div>
-    <div class="form-group">
-      <label>Cliente *</label>
-      <select id="fa_cliente">
-        <option value="">— Selecciona cliente —</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Mercancía *</label>
-      <select id="fa_mercancia">
-        <option value="">— Selecciona mercancía —</option>
-      </select>
-    </div>
+    <div class="form-group"><label>Cliente *</label><select id="fa_cliente"><option value="">— Selecciona cliente —</option></select></div>
+    <div class="form-group"><label>Mercancía *</label><select id="fa_mercancia"><option value="">— Selecciona mercancía —</option></select></div>
     <div class="form-row">
-      <div class="form-group">
-        <label>Saldo Factura (US$) *</label>
-        <input type="number" id="fa_deuda" placeholder="0.00" step="0.01">
-      </div>
-      <div class="form-group">
-        <label>Saldo a Favor (auto)</label>
-        <input type="number" id="fa_arrastre" placeholder="0.00" step="0.01" readonly style="opacity:.6">
-      </div>
+      <div class="form-group"><label>Saldo Factura (US$) *</label><input type="number" id="fa_deuda" placeholder="0.00" step="0.01"></div>
+      <div class="form-group"><label>Saldo a Favor (auto)</label><input type="number" id="fa_arrastre" placeholder="0.00" step="0.01" readonly style="opacity:.6"></div>
     </div>
     <div class="form-actions">
       <button class="btn btn-secondary" onclick="closeModal('modalFactura')">Cancelar</button>
@@ -1174,40 +295,21 @@
   </div>
 </div>
 
-<!-- Modal Pago -->
+<!-- MODAL PAGO -->
 <div class="modal-overlay" id="modalPago">
   <div class="modal">
     <div class="modal-title" id="modalPagoTitle">REGISTRAR <span>PAGO</span></div>
     <input type="hidden" id="pg_id">
     <div class="form-row">
-      <div class="form-group">
-        <label>Fecha *</label>
-        <input type="date" id="pg_fecha">
-      </div>
-      <div class="form-group">
-        <label>Monto (US$) *</label>
-        <input type="number" id="pg_monto" placeholder="0.00" step="0.01">
-      </div>
+      <div class="form-group"><label>Fecha *</label><input type="date" id="pg_fecha"></div>
+      <div class="form-group"><label>Monto (US$) *</label><input type="number" id="pg_monto" placeholder="0.00" step="0.01"></div>
     </div>
-    <div class="form-group">
-      <label>Factura *</label>
-      <select id="pg_factura" onchange="onSelectFacturaPago()">
-        <option value="">— Selecciona factura —</option>
-      </select>
-    </div>
+    <div class="form-group"><label>Factura *</label><select id="pg_factura" onchange="onSelectFacturaPago()"><option value="">— Selecciona factura —</option></select></div>
     <div id="pg_info" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:18px;font-size:13px;display:none;">
-      <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-        <span style="color:var(--text2)">Cliente:</span><span id="pg_info_cliente"></span>
-      </div>
-      <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-        <span style="color:var(--text2)">Saldo pendiente:</span>
-        <span id="pg_info_saldo" class="mono"></span>
-      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:var(--text2)">Cliente:</span><span id="pg_info_cliente"></span></div>
+      <div style="display:flex;justify-content:space-between;"><span style="color:var(--text2)">Saldo pendiente:</span><span id="pg_info_saldo" class="mono"></span></div>
     </div>
-    <div class="form-group">
-      <label>Notas</label>
-      <textarea id="pg_notas" rows="2" placeholder="Referencia, banco, etc..."></textarea>
-    </div>
+    <div class="form-group"><label>Notas</label><textarea id="pg_notas" rows="2" placeholder="Referencia, banco, etc..."></textarea></div>
     <div class="form-actions">
       <button class="btn btn-secondary" onclick="closeModal('modalPago')">Cancelar</button>
       <button class="btn btn-blue" id="btnGuardarPago" onclick="savePago()">Registrar Pago</button>
@@ -1215,32 +317,22 @@
   </div>
 </div>
 
-<!-- ═══ CONCILIACIÓN ═══ -->
+<!-- CONCILIACIÓN -->
 <div class="conc-overlay" id="conciliacionOverlay">
   <div class="conc-container">
-    <!-- Toolbar -->
     <div class="conc-toolbar">
       <span style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#fff">CONCILIACIÓN</span>
-      <div class="conc-toolbar-group">
-        <label>Desde</label>
-        <input type="date" id="conc_desde" onchange="generarConciliacion()">
-      </div>
-      <div class="conc-toolbar-group">
-        <label>Hasta</label>
-        <input type="date" id="conc_hasta" onchange="generarConciliacion()">
-      </div>
+      <div class="conc-toolbar-group"><label>Desde</label><input type="date" id="conc_desde" onchange="generarConciliacion()"></div>
+      <div class="conc-toolbar-group"><label>Hasta</label><input type="date" id="conc_hasta" onchange="generarConciliacion()"></div>
       <div class="conc-spacer"></div>
-      <button class="btn btn-primary btn-sm" id="btnCompartir" onclick="compartirPDF()">⬆️ Compartir PDF</button>
+      <button class="btn btn-primary btn-sm" id="btnCompartir" onclick="compartirConciliacion()">⬆️ Compartir PDF</button>
       <button class="btn btn-secondary btn-sm" onclick="cerrarConciliacion()">✕ Cerrar</button>
     </div>
-    <!-- Documento -->
     <div class="conc-doc" id="concDoc"></div>
   </div>
 </div>
 
-<!-- Toast -->
-<div id="toast">✓ Guardado correctamente</div>
-
+<div id="toast">✓</div>
 <script>
 // ═══ DATA STORE ═══
 const DB = {
@@ -1252,6 +344,7 @@ let clientes = DB.get('clientes');
 let mercancias = DB.get('mercancias');
 let facturas = DB.get('facturas');
 let pagos = DB.get('pagos');
+let concClienteId = null;
 
 function save() {
   DB.set('clientes', clientes);
@@ -1762,7 +855,7 @@ function renderPagos() {
 function renderDashboard() {
   const totalDeuda = facturas.reduce((s, f) => s + parseFloat(f.deuda), 0);
   const totalIngresado = pagos.reduce((s, p) => s + p.monto, 0);
-  const totalSaldo = facturas.reduce((s, f) => s + getSaldo(f.id), 0);
+  const totalSaldo = facturas.reduce((s, f) => { const sal = getSaldo(f.id); return s + (sal > 0 ? sal : 0); }, 0);
   const pendientes = facturas.filter(f => getEstatus(f.id) !== 'Pagado').length;
 
   document.getElementById('statsRow').innerHTML = `
@@ -1813,683 +906,215 @@ function renderDashboard() {
 }
 
 // ═══ COMPARTIR DASHBOARD ═══
-async function compartirDashboard() {
+function compartirDashboard() {
   const btn = document.getElementById('btnCompartirDash');
-  btn.textContent = '⏳ Generando...';
+  btn.textContent = '⏳ Preparando...';
   btn.disabled = true;
-
   try {
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const W = pdf.internal.pageSize.getWidth();
-    const H = pdf.internal.pageSize.getHeight();
     const hoyObj = new Date();
+    const hoyLargo = hoyObj.toLocaleDateString('es', {year:'numeric',month:'long',day:'numeric'});
     const hoyCorto = hoyObj.toISOString().split('T')[0];
-    const hoyLargo = hoyObj.toLocaleDateString('es', { year:'numeric', month:'long', day:'numeric' });
-    const margin = 14;
-    let y = 0;
-
-    // ── Calculos ──
-    const totalDeuda = facturas.reduce((s, f) => s + parseFloat(f.deuda), 0);
-    const totalIngresado = pagos.reduce((s, p) => s + p.monto, 0);
-    const totalSaldo = facturas.reduce((s, f) => s + getSaldo(f.id), 0);
+    const totalDeuda = facturas.reduce((s,f)=>s+parseFloat(f.deuda),0);
+    const totalIngresado = pagos.reduce((s,p)=>s+p.monto,0);
+    const totalSaldo = facturas.reduce((s,f)=>{const sal=getSaldo(f.id);return s+(sal>0?sal:0);},0);
     const totalClientes = clientes.length;
-    const pagadas = facturas.filter(f => getEstatus(f.id) === 'Pagado').length;
-    const parciales = facturas.filter(f => getEstatus(f.id) === 'Pagado parcialmente').length;
-    const pendientes = facturas.filter(f => getEstatus(f.id) === 'Pendiente').length;
-    const tasaCobro = totalDeuda > 0 ? ((totalIngresado / totalDeuda) * 100).toFixed(1) : '0.0';
+    const pagadas = facturas.filter(f=>getEstatus(f.id)==='Pagado').length;
+    const parciales = facturas.filter(f=>getEstatus(f.id)==='Pagado parcialmente').length;
+    const pendientes = facturas.filter(f=>getEstatus(f.id)==='Pendiente').length;
+    const tasaCobro = totalDeuda>0?((totalIngresado/totalDeuda)*100).toFixed(1):'0.0';
 
-    // ════════════════════════════════
-    // PÁGINA 1
-    // ════════════════════════════════
+    const rows = [...facturas].sort((a,b)=>a.fecha<b.fecha?-1:1).map((f,i)=>{
+      const c=clientes.find(x=>x.id===f.clienteId);
+      const m=mercancias.find(x=>x.id===f.mercanciaId);
+      const saldo=getSaldo(f.id); const ingreso=getTotalIngreso(f.id);
+      const est=getEstatus(f.id);
+      const ec=est==='Pagado'?'#16a34a':est==='Pagado parcialmente'?'#b45309':'#dc2626';
+      const sc=saldo>0.01?'#dc2626':saldo<-0.01?'#16a34a':'#888';
+      const bc=est==='Pagado'?'#16a34a':est==='Pagado parcialmente'?'#f59e0b':'#dc2626';
+      const bg=i%2===0?'#f8f8fc':'#fff';
+      return '<tr style="background:'+bg+'"><td style="border-left:3px solid '+bc+';padding:7px 8px;font-size:11px">'+fmtDate(f.fecha)+'</td>'
+        +'<td style="padding:7px 8px;font-size:11px">'+f.numero+'</td>'
+        +'<td style="padding:7px 8px;font-size:11px">'+(c?c.nombre:'—')+'</td>'
+        +'<td style="padding:7px 8px;font-size:10px">'+(m?m.nombre.substring(0,26):'—')+'</td>'
+        +'<td style="padding:7px 8px;text-align:right;font-size:11px">'+fmtUSD(f.deuda)+'</td>'
+        +'<td style="padding:7px 8px;text-align:right;color:#16a34a;font-size:11px">'+fmtUSD(ingreso)+'</td>'
+        +'<td style="padding:7px 8px;text-align:right;font-weight:700;color:'+sc+';font-size:11px">'+fmtUSD(saldo)+'</td>'
+        +'<td style="padding:7px 8px;color:'+ec+';font-weight:700;font-size:10px">'+est+'</td></tr>';
+    }).join('');
 
-    // Franja superior roja
-    pdf.setFillColor(232, 32, 42);
-    pdf.rect(0, 0, W, 3, 'F');
-
-    // Encabezado blanco limpio
-    y = 3;
-    pdf.setFillColor(255, 255, 255);
-    pdf.rect(0, y, W, 36, 'F');
-
-    // Nombre empresa
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(20);
-    pdf.setTextColor(15, 15, 20);
-    pdf.text('DAL MIAMI', margin, y + 14);
-    pdf.setTextColor(232, 32, 42);
-    pdf.text('EXPORT LLC', margin + 48, y + 14);
-
-    // Subtítulo
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(8);
-    pdf.setTextColor(100, 100, 110);
-    pdf.text('3901 SW 78th CT · Miami FL-33155 · EIN: 93-1412443', margin, y + 21);
-    pdf.text('dalmiami9@gmail.com · +1 786-839-1403', margin, y + 27);
-
-    // Bloque documento (derecha)
-    pdf.setFillColor(245, 245, 248);
-    pdf.roundedRect(W - 70, y + 5, 58, 28, 2, 2, 'F');
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(9);
-    pdf.setTextColor(232, 32, 42);
-    pdf.text('INFORME FINANCIERO', W - 41, y + 12, { align: 'center' });
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(7);
-    pdf.setTextColor(15, 15, 20);
-    pdf.text('RESUMEN EJECUTIVO', W - 41, y + 18, { align: 'center' });
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(7);
-    pdf.setTextColor(100, 100, 110);
-    pdf.text('Fecha: ' + hoyLargo, W - 41, y + 24, { align: 'center' });
-    pdf.text('Confidencial — Uso interno', W - 41, y + 29, { align: 'center' });
-
-    // Línea divisoria
-    y += 38;
-    pdf.setDrawColor(220, 220, 228);
-    pdf.setLineWidth(0.3);
-    pdf.line(margin, y, W - margin, y);
-
-    // ── Texto introductorio ejecutivo ──
-    y += 7;
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(9);
-    pdf.setTextColor(15, 15, 20);
-    pdf.text('CARTA DE PRESENTACIÓN', margin, y);
-
-    y += 5;
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(8);
-    pdf.setTextColor(60, 60, 70);
-    const intro = [
-      `Estimados socios e inversores,`,
-      ``,
-      `A continuación presentamos el informe financiero de DAL Miami Export LLC, correspondiente`,
-      `al período vigente con corte al ${hoyLargo}. Este documento refleja el estado actual de`,
-      `nuestra cartera de clientes, el comportamiento de las cuentas por cobrar y el nivel de`,
-      `cumplimiento en los compromisos de pago de nuestros socios comerciales.`,
-      ``,
-      `DAL Miami Export LLC mantiene operaciones de exportación de productos alimenticios hacia`,
-      `mercados internacionales, con una cartera activa de ${totalClientes} clientes y un volumen`,
-      `total facturado de ${fmtUSD(totalDeuda)} en el período reportado. La tasa de cobro`,
-      `actual se sitúa en ${tasaCobro}%, lo que refleja un sólido desempeño en la gestión`,
-      `de cuentas por cobrar.`,
-      ``,
-      `Este informe ha sido preparado por la Gerencia Financiera para uso exclusivo de socios`,
-      `e inversores autorizados. Los datos son confidenciales y no deben ser divulgados a`,
-      `terceros sin autorización expresa de la dirección de la empresa.`,
+    const partes = [
+      '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">',
+      '<title>Informe DAL Miami ',hoyCorto,'</title>',
+      '<'+'style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;color:#1a1a2e;background:#fff;padding:28px}@media print{body{padding:0}}</'+'style>',
+      '</head><body>',
+      '<div style="border-bottom:3px solid #E8202A;padding-bottom:16px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:flex-start">',
+      '<div><div style="font-size:22px;font-weight:900"><span style="color:#E8202A">DAL</span> MIAMI EXPORT LLC</div>',
+      '<div style="font-size:9px;color:#666;margin-top:5px;line-height:1.8">3901 SW 78th CT · Miami FL-33155 · EIN: 93-1412443<br>dalmiami9@gmail.com · +1 786-839-1403</div></div>',
+      '<div style="text-align:right"><div style="font-size:12px;font-weight:700;color:#E8202A">INFORME FINANCIERO</div>',
+      '<div style="font-size:9px;color:#888;margin-top:4px;line-height:1.8">Resumen Ejecutivo<br>',hoyLargo,'<br><strong>Confidencial</strong></div></div></div>',
+      '<div style="font-size:10px;color:#444;line-height:1.8;margin-bottom:18px;padding:12px 14px;background:#f8f8fc;border-left:3px solid #E8202A">',
+      '<strong>Estimados socios e inversores,</strong><br>',
+      'Informe con corte al ',hoyLargo,'. Cartera activa: <strong>',totalClientes,' clientes</strong>. ',
+      'Facturado: <strong>',fmtUSD(totalDeuda),'</strong>. Tasa de cobro: <strong>',tasaCobro,'%</strong>. Confidencial.</div>',
+      '<div style="display:flex;gap:8px;margin-bottom:18px">',
+      '<div style="flex:1;border:1px solid #dde;border-radius:6px;padding:10px;text-align:center"><div style="font-size:8px;text-transform:uppercase;color:#888;margin-bottom:4px">Total Facturado</div><div style="font-size:13px;font-weight:700;color:#1A3CCC">',fmtUSD(totalDeuda),'</div></div>',
+      '<div style="flex:1;border:1px solid #dde;border-radius:6px;padding:10px;text-align:center"><div style="font-size:8px;text-transform:uppercase;color:#888;margin-bottom:4px">Total Cobrado</div><div style="font-size:13px;font-weight:700;color:#16a34a">',fmtUSD(totalIngresado),'</div></div>',
+      '<div style="flex:1;border:1px solid #dde;border-radius:6px;padding:10px;text-align:center"><div style="font-size:8px;text-transform:uppercase;color:#888;margin-bottom:4px">Saldo por Cobrar</div><div style="font-size:13px;font-weight:700;color:',(totalSaldo>0?'#dc2626':'#16a34a'),'">',fmtUSD(Math.abs(totalSaldo)),'</div></div>',
+      '<div style="flex:1;border:1px solid #dde;border-radius:6px;padding:10px;text-align:center"><div style="font-size:8px;text-transform:uppercase;color:#888;margin-bottom:4px">Tasa Cobro</div><div style="font-size:13px;font-weight:700;color:#f59e0b">',tasaCobro,'%</div></div>',
+      '<div style="flex:1;border:1px solid #dde;border-radius:6px;padding:10px;text-align:center"><div style="font-size:8px;text-transform:uppercase;color:#888;margin-bottom:4px">Pendientes</div><div style="font-size:13px;font-weight:700;color:#f59e0b">',pendientes,'</div></div>',
+      '</div>',
+      '<div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:6px">Detalle de Operaciones</div>',
+      '<table style="width:100%;border-collapse:collapse;margin-bottom:18px">',
+      '<thead><tr style="background:#0f0f14;color:#fff">',
+      '<th style="padding:7px;text-align:left;font-size:8px">FECHA</th>',
+      '<th style="padding:7px;text-align:left;font-size:8px">N°</th>',
+      '<th style="padding:7px;text-align:left;font-size:8px">CLIENTE</th>',
+      '<th style="padding:7px;text-align:left;font-size:8px">PRODUCTO</th>',
+      '<th style="padding:7px;text-align:right;font-size:8px">SALDO FACT.</th>',
+      '<th style="padding:7px;text-align:right;font-size:8px">COBRADO</th>',
+      '<th style="padding:7px;text-align:right;font-size:8px">SALDO</th>',
+      '<th style="padding:7px;text-align:left;font-size:8px">ESTADO</th>',
+      '</tr></thead><tbody>',rows,'</tbody></table>',
+      '<div style="font-size:10px;color:#444;line-height:1.8;margin-bottom:18px;padding:12px 14px;background:#f8f8fc;border-left:3px solid #1A3CCC">',
+      '<strong>Análisis:</strong> Tasa de cobro ',tasaCobro,'% sobre ',facturas.length,' operaciones. ',
+      pagadas,' facturas saldadas, ',parciales,' parciales, ',pendientes,' pendientes. ',
+      'Saldo por cobrar: ',fmtUSD(Math.abs(totalSaldo)),'.</div>',
+      '<div style="border-top:1px solid #e0e0e8;padding-top:12px;display:flex;justify-content:space-between;align-items:flex-end">',
+      '<div><div style="width:140px;border-bottom:1px solid #aaa;margin-bottom:4px;height:22px"></div>',
+      '<div style="font-weight:700;font-size:10px">Diego Hernández</div>',
+      '<div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:1px">Gerente Financiero · DAL Miami Export LLC</div></div>',
+      '<div style="text-align:right;font-size:8px;color:#aaa;line-height:1.8">',hoyLargo,'<br>EIN: 93-1412443 · dalmiami9@gmail.com</div></div>',
+      '</body></html>'
     ];
-    intro.forEach(line => {
-      pdf.text(line, margin, y);
-      y += 4.8;
-    });
-
-    // ── KPIs ──
-    y += 4;
-    pdf.setDrawColor(220, 220, 228);
-    pdf.line(margin, y, W - margin, y);
-    y += 6;
-
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(9);
-    pdf.setTextColor(15, 15, 20);
-    pdf.text('INDICADORES CLAVE DE DESEMPEÑO', margin, y);
-    y += 6;
-
-    const kpis = [
-      { label: 'Total Facturado', valor: fmtUSD(totalDeuda), color: [26, 60, 204], desc: 'Volumen bruto emitido' },
-      { label: 'Total Cobrado', valor: fmtUSD(totalIngresado), color: [22, 163, 74], desc: 'Ingresos efectivamente recibidos' },
-      { label: 'Saldo por Cobrar', valor: fmtUSD(Math.abs(totalSaldo)), color: totalSaldo > 0 ? [220, 38, 38] : [22, 163, 74], desc: totalSaldo > 0 ? 'Cuentas por cobrar activas' : 'Sin saldo pendiente' },
-      { label: 'Tasa de Cobro', valor: tasaCobro + '%', color: [245, 158, 11], desc: 'Cobrado vs. facturado' },
-    ];
-
-    const kpiW = (W - margin * 2 - 9) / 4;
-    kpis.forEach((k, i) => {
-      const x = margin + i * (kpiW + 3);
-      pdf.setFillColor(248, 248, 252);
-      pdf.setDrawColor(220, 220, 228);
-      pdf.setLineWidth(0.3);
-      pdf.roundedRect(x, y, kpiW, 24, 2, 2, 'FD');
-      // Barra color top
-      pdf.setFillColor(...k.color);
-      pdf.roundedRect(x, y, kpiW, 2, 1, 1, 'F');
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(6);
-      pdf.setTextColor(100, 100, 110);
-      pdf.text(k.label.toUpperCase(), x + kpiW / 2, y + 7, { align: 'center' });
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(10);
-      pdf.setTextColor(...k.color);
-      pdf.text(k.valor, x + kpiW / 2, y + 15, { align: 'center' });
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(5.5);
-      pdf.setTextColor(140, 140, 150);
-      pdf.text(k.desc, x + kpiW / 2, y + 21, { align: 'center' });
-    });
-    y += 30;
-
-    // ── Estado de cartera ──
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(8);
-    pdf.setTextColor(100, 100, 110);
-    pdf.text('ESTADO DE LA CARTERA', margin, y);
-    y += 5;
-
-    const estados = [
-      { label: 'Facturas Pagadas', n: pagadas, color: [22, 163, 74] },
-      { label: 'Pagado Parcialmente', n: parciales, color: [245, 158, 11] },
-      { label: 'Pendientes de Pago', n: pendientes, color: [220, 38, 38] },
-    ];
-    const estW = (W - margin * 2 - 6) / 3;
-    estados.forEach((e, i) => {
-      const x = margin + i * (estW + 3);
-      pdf.setFillColor(255, 255, 255);
-      pdf.setDrawColor(...e.color);
-      pdf.setLineWidth(0.5);
-      pdf.roundedRect(x, y, estW, 14, 2, 2, 'FD');
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(14);
-      pdf.setTextColor(...e.color);
-      pdf.text(String(e.n), x + estW / 2, y + 9, { align: 'center' });
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(6);
-      pdf.setTextColor(100, 100, 110);
-      pdf.text(e.label.toUpperCase(), x + estW / 2, y + 13, { align: 'center' });
-    });
-    y += 20;
-
-    // ════════════════════════════════
-    // TABLA DE FACTURAS
-    // ════════════════════════════════
-    pdf.setDrawColor(220, 220, 228);
-    pdf.line(margin, y, W - margin, y);
-    y += 6;
-
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(9);
-    pdf.setTextColor(15, 15, 20);
-    pdf.text('DETALLE DE OPERACIONES COMERCIALES', margin, y);
-    y += 6;
-
-    const cols  = ['Fecha', 'N°', 'Cliente', 'Producto', 'Saldo Fact.', 'Cobrado', 'Saldo', 'Estado'];
-    const colW  = [17, 10, 32, 42, 23, 23, 22, 28];
-    let cx = margin;
-
-    // Header tabla
-    pdf.setFillColor(15, 15, 20);
-    pdf.rect(margin, y, W - margin * 2, 7, 'F');
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(6);
-    pdf.setTextColor(255, 255, 255);
-    cx = margin;
-    cols.forEach((col, i) => {
-      pdf.text(col.toUpperCase(), cx + 2, y + 4.5);
-      cx += colW[i];
-    });
-    y += 7;
-
-    const rows = [...facturas].sort((a, b) => a.fecha < b.fecha ? -1 : 1);
-    rows.forEach((f, idx) => {
-      if (y > H - 28) {
-        // Pie en página actual
-        agregarPie(pdf, W, H, margin, hoyLargo);
-        pdf.addPage();
-        // Franja roja top nueva pag
-        pdf.setFillColor(232, 32, 42);
-        pdf.rect(0, 0, W, 2, 'F');
-        y = 10;
-        // Repetir cabecera tabla
-        pdf.setFillColor(15, 15, 20);
-        pdf.rect(margin, y, W - margin * 2, 7, 'F');
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(6);
-        pdf.setTextColor(255, 255, 255);
-        cx = margin;
-        cols.forEach((col, i) => { pdf.text(col.toUpperCase(), cx + 2, y + 4.5); cx += colW[i]; });
-        y += 7;
-      }
-
-      const c = clientes.find(x => x.id === f.clienteId);
-      const m = mercancias.find(x => x.id === f.mercanciaId);
-      const saldo = getSaldo(f.id);
-      const ingreso = getTotalIngreso(f.id);
-      const estatus = getEstatus(f.id);
-
-      // Fila alterna clara
-      if (idx % 2 === 0) {
-        pdf.setFillColor(248, 248, 252);
-        pdf.rect(margin, y, W - margin * 2, 7, 'F');
-      } else {
-        pdf.setFillColor(255, 255, 255);
-        pdf.rect(margin, y, W - margin * 2, 7, 'F');
-      }
-
-      // Línea izquierda de color según estado
-      const lineColor = estatus === 'Pagado' ? [22,163,74] : estatus === 'Pagado parcialmente' ? [245,158,11] : [220,38,38];
-      pdf.setFillColor(...lineColor);
-      pdf.rect(margin, y, 1.5, 7, 'F');
-
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(6.5);
-      cx = margin + 2;
-
-      const celdas = [
-        fmtDate(f.fecha),
-        f.numero,
-        (c ? c.nombre : '—').substring(0, 16),
-        (m ? m.nombre : '—').substring(0, 24),
-        fmtUSD(f.deuda),
-        fmtUSD(ingreso),
-        fmtUSD(saldo),
-        estatus,
-      ];
-
-      celdas.forEach((val, i) => {
-        if (i === 7) {
-          if (estatus === 'Pagado') pdf.setTextColor(22, 163, 74);
-          else if (estatus === 'Pagado parcialmente') pdf.setTextColor(180, 115, 0);
-          else pdf.setTextColor(220, 38, 38);
-          pdf.setFont('helvetica', 'bold');
-        } else if (i === 6) {
-          pdf.setFont('helvetica', 'bold');
-          if (saldo > 0.01) pdf.setTextColor(220, 38, 38);
-          else if (saldo < -0.01) pdf.setTextColor(22, 163, 74);
-          else pdf.setTextColor(140, 140, 150);
-        } else {
-          pdf.setFont('helvetica', 'normal');
-          pdf.setTextColor(30, 30, 40);
-        }
-        pdf.text(String(val), cx, y + 4.5);
-        cx += colW[i];
-      });
-
-      pdf.setDrawColor(220, 220, 228);
-      pdf.setLineWidth(0.15);
-      pdf.line(margin, y + 7, W - margin, y + 7);
-      y += 7;
-    });
-
-    // ── Resumen narrativo final ──
-    y += 6;
-    if (y > H - 60) {
-      agregarPie(pdf, W, H, margin, hoyLargo);
-      pdf.addPage();
-      pdf.setFillColor(232, 32, 42);
-      pdf.rect(0, 0, W, 2, 'F');
-      y = 14;
-    }
-
-    pdf.setDrawColor(220, 220, 228);
-    pdf.line(margin, y, W - margin, y);
-    y += 6;
-
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(9);
-    pdf.setTextColor(15, 15, 20);
-    pdf.text('ANÁLISIS Y CONCLUSIONES', margin, y);
-    y += 6;
-
-    const conclusion = [
-      `Al cierre del presente período, DAL Miami Export LLC presenta una posición financiera sólida`,
-      `con una tasa de cobro del ${tasaCobro}% sobre el total facturado. La cartera activa comprende`,
-      `${facturas.length} operaciones comerciales distribuidas entre ${totalClientes} clientes en mercados internacionales.`,
-      ``,
-      `De las operaciones registradas, ${pagadas} facturas se encuentran completamente saldadas,`,
-      `${parciales} presentan pagos parciales en proceso de regularización, y ${pendientes} están`,
-      `pendientes de primer pago. La Gerencia Financiera mantiene seguimiento activo de todas`,
-      `las cuentas con saldo vigente para asegurar la liquidez operativa de la empresa.`,
-      ``,
-      `El saldo por cobrar de ${fmtUSD(Math.abs(totalSaldo))} representa cuentas con clientes de`,
-      `trayectoria comercial verificada. Se proyecta la regularización de los saldos parciales`,
-      `en el corto plazo conforme a los acuerdos de pago vigentes.`,
-    ];
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(8);
-    pdf.setTextColor(55, 55, 65);
-    conclusion.forEach(line => {
-      if (y > H - 35) {
-        agregarPie(pdf, W, H, margin, hoyLargo);
-        pdf.addPage();
-        pdf.setFillColor(232, 32, 42);
-        pdf.rect(0, 0, W, 2, 'F');
-        y = 14;
-      }
-      pdf.text(line, margin, y);
-      y += 5;
-    });
-
-    // Pie última página
-    agregarPie(pdf, W, H, margin, hoyLargo);
-
-    // ── Compartir ──
-    const pdfBlob = pdf.output('blob');
-    const fileName = `DAL_Miami_Informe_Ejecutivo_${hoyCorto}.pdf`;
-    const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
-
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-      await navigator.share({
-        title: 'Informe Ejecutivo — DAL Miami Export LLC',
-        text: 'Informe financiero ejecutivo DAL Miami Export LLC',
-        files: [pdfFile],
-      });
-    } else {
-      const url = URL.createObjectURL(pdfBlob);
-      const a = document.createElement('a');
-      a.href = url; a.download = fileName; a.click();
-      URL.revokeObjectURL(url);
-    }
-
-  } catch (err) {
+    const html = partes.join('');
+    const blob = new Blob([html],{type:'text/html'});
+    const url = URL.createObjectURL(blob);
+    const win = window.open(url,'_blank');
+    if(!win){toast('Permite ventanas emergentes en Safari','error');}
+    else{setTimeout(()=>{try{win.print();}catch(e){}},1200);}
+    setTimeout(()=>URL.revokeObjectURL(url),20000);
+  } catch(err){
     console.error(err);
-    toast('Error al generar PDF', 'error');
+    toast('Error al generar informe','error');
   } finally {
-    btn.textContent = '⬆️ Compartir PDF';
-    btn.disabled = false;
+    btn.textContent='⬆️ Compartir PDF';
+    btn.disabled=false;
   }
 }
 
-function agregarPie(pdf, W, H, margin, hoyLargo) {
-  pdf.setFillColor(248, 248, 252);
-  pdf.rect(0, H - 20, W, 20, 'F');
-  pdf.setFillColor(232, 32, 42);
-  pdf.rect(0, H - 20, W, 0.5, 'F');
-  // Firma
-  pdf.setDrawColor(100, 100, 110);
-  pdf.setLineWidth(0.3);
-  pdf.line(margin, H - 12, margin + 55, H - 12);
-  pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(7);
-  pdf.setTextColor(15, 15, 20);
-  pdf.text('Diego Hernández', margin, H - 8);
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(6);
-  pdf.setTextColor(100, 100, 110);
-  pdf.text('GERENTE FINANCIERO · DAL Miami Export LLC', margin, H - 4);
-  // Info derecha
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(6);
-  pdf.setTextColor(140, 140, 150);
-  pdf.text('Documento confidencial generado el ' + hoyLargo, W - margin, H - 8, { align: 'right' });
-  pdf.text('DAL Miami Export LLC · EIN: 93-1412443 · dalmiami9@gmail.com', W - margin, H - 4, { align: 'right' });
-}
+function agregarPie(){}
 
-// ═══ COMPARTIR PDF ═══
-async function compartirPDF() {
-  const btn = document.getElementById('btnCompartir');
-  btn.textContent = '⏳ Generando...';
-  btn.disabled = true;
-
-  try {
-    const doc = document.getElementById('concDoc');
-    const canvas = await html2canvas(doc, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      logging: false,
-    });
-
-    const imgData = canvas.toDataURL('image/jpeg', 0.95);
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-    const pageW = pdf.internal.pageSize.getWidth();
-    const pageH = pdf.internal.pageSize.getHeight();
-    const imgW = pageW;
-    const imgH = (canvas.height * imgW) / canvas.width;
-
-    let posY = 0;
-    let remaining = imgH;
-
-    // Paginar si el contenido es más largo que una página
-    while (remaining > 0) {
-      pdf.addImage(imgData, 'JPEG', 0, posY, imgW, imgH);
-      remaining -= pageH;
-      posY -= pageH;
-      if (remaining > 0) pdf.addPage();
-    }
-
-    const cliente = clientes.find(c => c.id === concClienteId);
-    const nombreCliente = cliente ? cliente.nombre.replace(/\s+/g, '_') : 'cliente';
-    const fecha = new Date().toISOString().split('T')[0];
-    const fileName = `Conciliacion_${nombreCliente}_${fecha}.pdf`;
-
-    const pdfBlob = pdf.output('blob');
-    const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
-
-    // Web Share API — menú nativo de iOS
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-      await navigator.share({
-        title: `Conciliación — ${cliente ? cliente.nombre : ''}`,
-        text: `Estado de cuenta DAL Miami Export LLC`,
-        files: [pdfFile],
-      });
-    } else {
-      // Fallback: descarga directa
-      const url = URL.createObjectURL(pdfBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-  } catch (err) {
-    console.error(err);
-    toast('Error al generar PDF', 'error');
-  } finally {
-    btn.textContent = '⬆️ Compartir PDF';
-    btn.disabled = false;
-  }
-}
-
-// ═══ CONCILIACIÓN ═══
-let concClienteId = null;
-
-function abrirConciliacion(clienteId) {
-  concClienteId = clienteId;
-  // default: primer dia del mes actual hasta hoy
-  const hoy = new Date();
-  const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().split('T')[0];
-  const hoyStr = hoy.toISOString().split('T')[0];
-  document.getElementById('conc_desde').value = primerDia;
-  document.getElementById('conc_hasta').value = hoyStr;
-  document.getElementById('conciliacionOverlay').classList.add('open');
-  generarConciliacion();
-}
-
-function cerrarConciliacion() {
-  document.getElementById('conciliacionOverlay').classList.remove('open');
-  concClienteId = null;
-}
-
-function diasAtraso(fechaStr) {
-  if (!fechaStr) return 0;
-  const fecha = new Date(fechaStr + 'T00:00:00');
-  const hoy = new Date();
-  hoy.setHours(0,0,0,0);
-  const diff = Math.floor((hoy - fecha) / (1000 * 60 * 60 * 24));
-  return Math.max(0, diff);
-}
-
-function generarConciliacion() {
-  const cliente = clientes.find(c => c.id === concClienteId);
-  if (!cliente) return;
-
+// ═══ COMPARTIR CONCILIACIÓN ═══
+function compartirConciliacion() {
+  const cliente = clientes.find(c=>c.id===concClienteId);
+  if(!cliente) return;
+  const hoyObj = new Date();
+  const hoyLargo = hoyObj.toLocaleDateString('es',{year:'numeric',month:'long',day:'numeric'});
   const desde = document.getElementById('conc_desde').value;
   const hasta = document.getElementById('conc_hasta').value;
 
-  // Facturas del cliente en rango
   const facturasCliente = facturas
-    .filter(f => f.clienteId === concClienteId && (!desde || f.fecha >= desde) && (!hasta || f.fecha <= hasta))
-    .sort((a, b) => a.fecha < b.fecha ? -1 : 1);
-
-  // Todos los pagos de esas facturas en rango
-  const facturasIds = facturas.filter(f => f.clienteId === concClienteId).map(f => f.id);
+    .filter(f=>f.clienteId===concClienteId&&(!desde||f.fecha>=desde)&&(!hasta||f.fecha<=hasta))
+    .sort((a,b)=>a.fecha<b.fecha?-1:1);
+  const facturasIds = facturas.filter(f=>f.clienteId===concClienteId).map(f=>f.id);
   const pagosCliente = pagos
-    .filter(p => facturasIds.includes(p.facturaId) && (!desde || p.fecha >= desde) && (!hasta || p.fecha <= hasta))
-    .sort((a, b) => a.fecha < b.fecha ? -1 : 1);
+    .filter(p=>facturasIds.includes(p.facturaId)&&(!desde||p.fecha>=desde)&&(!hasta||p.fecha<=hasta))
+    .sort((a,b)=>a.fecha<b.fecha?-1:1);
 
-  // Construir movimientos combinados ordenados por fecha
-  const movimientos = [];
-
-  facturasCliente.forEach(f => {
-    const m = mercancias.find(x => x.id === f.mercanciaId);
-    if (f.arrastre > 0) {
-      movimientos.push({ fecha: f.fecha, tipo: 'favor', monto: -parseFloat(f.arrastre), facturaNum: f.numero, desc: 'Saldo a favor aplicado de factura anterior', mercancia: '' });
-    }
-    movimientos.push({ fecha: f.fecha, tipo: 'factura', monto: parseFloat(f.deuda), facturaNum: f.numero, desc: m ? m.nombre : '—', mercancia: m ? (m.descripcion || '') : '' });
+  const movs=[];
+  facturasCliente.forEach(f=>{
+    const m=mercancias.find(x=>x.id===f.mercanciaId);
+    if(f.arrastre>0) movs.push({fecha:f.fecha,tipo:'favor',monto:-parseFloat(f.arrastre),num:f.numero,desc:'Saldo a favor aplicado',mer:''});
+    movs.push({fecha:f.fecha,tipo:'factura',monto:parseFloat(f.deuda),num:f.numero,desc:m?m.nombre:'—',mer:m?(m.descripcion||''):''});
   });
-
-  pagosCliente.forEach(p => {
-    const f = facturas.find(x => x.id === p.facturaId);
-    movimientos.push({ fecha: p.fecha, tipo: 'pago', monto: -p.monto, facturaNum: f ? f.numero : '—', desc: p.notas || 'Pago recibido', mercancia: '' });
+  pagosCliente.forEach(p=>{
+    const f=facturas.find(x=>x.id===p.facturaId);
+    movs.push({fecha:p.fecha,tipo:'pago',monto:-p.monto,num:f?f.numero:'—',desc:p.notas||'Pago recibido',mer:''});
   });
+  movs.sort((a,b)=>a.fecha<b.fecha?-1:1);
 
-  movimientos.sort((a, b) => a.fecha < b.fecha ? -1 : 1);
+  let sc=0;
+  const filas=movs.map(mv=>{sc+=mv.monto;return Object.assign({},mv,{sc:sc});});
 
-  // Saldo corriente acumulado
-  let saldoCorriente = 0;
-  const filas = movimientos.map(mv => {
-    saldoCorriente += mv.monto;
-    return { ...mv, saldoCorriente };
-  });
+  const totalF=facturasCliente.reduce((s,f)=>s+parseFloat(f.deuda),0);
+  const totalFav=facturasCliente.reduce((s,f)=>s+(parseFloat(f.arrastre)||0),0);
+  const totalP=pagosCliente.reduce((s,p)=>s+p.monto,0);
+  const saldoFinal=totalF-totalFav-totalP;
+  const fmtP=d=>{if(!d)return '—';const [y,m,day]=d.split('-');return day+'/'+m+'/'+y;};
+  const periodo=desde||hasta?fmtP(desde)+' — '+fmtP(hasta):'Todos los movimientos';
 
-  // Totales
-  const totalFacturado = facturasCliente.reduce((s, f) => s + parseFloat(f.deuda), 0);
-  const totalFavor = facturasCliente.reduce((s, f) => s + (parseFloat(f.arrastre) || 0), 0);
-  const totalPagado = pagosCliente.reduce((s, p) => s + p.monto, 0);
-  const saldoFinal = totalFacturado - totalFavor - totalPagado;
+  const filasHTML=filas.map((mv,i)=>{
+    const tipo=mv.tipo==='factura'?'<span style="background:#fff3cd;color:#92600a;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:700">FACTURA</span>'
+      :mv.tipo==='pago'?'<span style="background:#d1fae5;color:#065f46;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:700">PAGO</span>'
+      :'<span style="background:#dbeafe;color:#1e40af;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:700">FAVOR</span>';
+    const mColor=mv.monto>0?'#dc2626':'#16a34a';
+    const sColor=mv.sc>0.01?'#dc2626':mv.sc<-0.01?'#16a34a':'#888';
+    const mTxt=(mv.monto>0?'+':'')+fmtUSD(mv.monto);
+    const bg=i%2===0?'#f9f9fc':'#fff';
+    return '<tr style="background:'+bg+'">'
+      +'<td style="padding:7px 8px;border-bottom:1px solid #eee;font-size:11px">'+fmtDate(mv.fecha)+'</td>'
+      +'<td style="padding:7px 8px;border-bottom:1px solid #eee">'+tipo+'</td>'
+      +'<td style="padding:7px 8px;border-bottom:1px solid #eee;font-size:10px;font-family:monospace">#'+mv.num+'</td>'
+      +'<td style="padding:7px 8px;border-bottom:1px solid #eee;font-size:11px"><strong>'+mv.desc+'</strong>'+(mv.mer?'<br><small style="color:#aaa">'+mv.mer+'</small>':'')+'</td>'
+      +'<td style="padding:7px 8px;border-bottom:1px solid #eee;text-align:right;font-weight:700;color:'+mColor+';font-size:11px">'+mTxt+'</td>'
+      +'<td style="padding:7px 8px;border-bottom:1px solid #eee;text-align:right;font-weight:700;color:'+sColor+';font-size:11px">'+fmtUSD(mv.sc)+'</td></tr>';
+  }).join('')||'<tr><td colspan="6" style="padding:28px;text-align:center;color:#aaa">Sin movimientos en el período</td></tr>';
 
-  // Fecha más antigua de factura pendiente
-  const facturasPendientes = facturasCliente.filter(f => getSaldo(f.id) > 0);
-  const fechaMasAntigua = facturasPendientes.length
-    ? facturasPendientes.sort((a, b) => a.fecha < b.fecha ? -1 : 1)[0].fecha
-    : null;
-  const atraso = fechaMasAntigua ? diasAtraso(fechaMasAntigua) : 0;
+  const notaBg=saldoFinal>0.01?'#fff1f2':saldoFinal<-0.01?'#f0fdf4':'#f0f9ff';
+  const notaBorder=saldoFinal>0.01?'#E8202A':saldoFinal<-0.01?'#16a34a':'#1A3CCC';
+  const notaTxt=saldoFinal>0.01
+    ?'<strong>Saldo Pendiente:</strong> '+cliente.nombre+' presenta un saldo de <strong>'+fmtUSD(saldoFinal)+'</strong>. Le agradecemos gestionar su pago.'
+    :saldoFinal<-0.01
+    ?'<strong>Saldo a Favor:</strong> '+cliente.nombre+' tiene crédito de <strong>'+fmtUSD(Math.abs(saldoFinal))+'</strong> para su próxima factura.'
+    :'<strong>Cuenta al Día:</strong> '+cliente.nombre+' no presenta saldos pendientes.';
 
-  // Periodo texto
-  const fmtPeriodo = (d) => { if (!d) return '—'; const [y,m,day] = d.split('-'); return `${day}/${m}/${y}`; };
-  const periodoTxt = desde || hasta ? `Período: ${fmtPeriodo(desde)} — ${fmtPeriodo(hasta)}` : 'Todos los movimientos';
-  const hoyTxt = fmtPeriodo(new Date().toISOString().split('T')[0]);
-
-  // Nota final
-  let notaHTML = '';
-  if (saldoFinal > 0.01) {
-    notaHTML = `<div class="conc-nota deuda">
-      <div class="conc-nota-title">⚠️ Saldo Pendiente de Pago</div>
-      Estimado cliente <strong>${cliente.nombre}</strong>, a la fecha de este documento usted presenta un saldo pendiente de 
-      <strong>${fmtUSD(saldoFinal)}</strong>${atraso > 0 ? ` con un atraso de <strong>${atraso} días</strong>` : ''}.
-      Le agradecemos gestionar su pago a la brevedad posible. Para cualquier consulta no dude en contactarnos.
-    </div>`;
-  } else if (saldoFinal < -0.01) {
-    notaHTML = `<div class="conc-nota favor">
-      <div class="conc-nota-title">✅ Saldo a Su Favor</div>
-      Estimado cliente <strong>${cliente.nombre}</strong>, usted presenta un crédito a su favor de 
-      <strong>${fmtUSD(Math.abs(saldoFinal))}</strong>, el cual será aplicado como saldo a favor en su próxima factura.
-      Le agradecemos su puntualidad en los pagos.
-    </div>`;
-  } else {
-    notaHTML = `<div class="conc-nota saldado">
-      <div class="conc-nota-title">✔ Cuenta al Día</div>
-      Estimado cliente <strong>${cliente.nombre}</strong>, su cuenta se encuentra completamente al día. 
-      No presenta saldos pendientes en el período consultado. Le agradecemos su puntualidad.
-    </div>`;
-  }
-
-  // Render filas tabla
-  const filasHTML = filas.length ? filas.map(mv => {
-    const tipoLabel = mv.tipo === 'factura'
-      ? `<span class="conc-tipo tipo-factura">🧾 Factura</span>`
-      : mv.tipo === 'pago'
-      ? `<span class="conc-tipo tipo-pago">💰 Pago</span>`
-      : `<span class="conc-tipo tipo-favor">↩ Saldo a Favor</span>`;
-
-    const montoColor = mv.monto > 0 ? 'conc-saldo-pos' : 'conc-saldo-neg';
-    const saldoColor = mv.saldoCorriente > 0.01 ? 'conc-saldo-pos' : mv.saldoCorriente < -0.01 ? 'conc-saldo-neg' : 'conc-saldo-zero';
-    const montoTxt = mv.monto > 0 ? `+${fmtUSD(mv.monto)}` : fmtUSD(mv.monto);
-
-    return `<tr class="conc-row-${mv.tipo}">
-      <td>${fmtDate(mv.fecha)}</td>
-      <td>${tipoLabel}</td>
-      <td class="mono" style="font-size:11px">#${mv.facturaNum}</td>
-      <td style="max-width:200px">
-        <div style="font-weight:600;font-size:12px">${mv.desc}</div>
-        ${mv.mercancia ? `<div style="font-size:10px;color:#888;margin-top:2px">${mv.mercancia}</div>` : ''}
-      </td>
-      <td class="right ${montoColor}">${montoTxt}</td>
-      <td class="right ${saldoColor}">${fmtUSD(mv.saldoCorriente)}</td>
-    </tr>`;
-  }).join('') : `<tr><td colspan="6" style="text-align:center;padding:32px;color:#888">Sin movimientos en el período seleccionado</td></tr>`;
-
-  document.getElementById('concDoc').innerHTML = `
-    <div class="conc-header">
-      <div>
-        <div class="conc-brand-name"><span>DAL</span> MIAMI EXPORT LLC</div>
-        <div class="conc-brand-info">
-          3901 SW 78th CT Miami FL-33155<br>
-          EIN: 93-1412443 · dalmiami9@gmail.com<br>
-          Cell: +1 786-839-1403
-        </div>
-      </div>
-      <div class="conc-doc-meta">
-        <strong>ESTADO DE CUENTA</strong>
-        Fecha de emisión: ${hoyTxt}<br>
-        ${periodoTxt}
-      </div>
-    </div>
-
-    <div class="conc-client-box">
-      <div class="conc-client-label">Cliente</div>
-      <div class="conc-client-name">${cliente.nombre}</div>
-      <div class="conc-periodo">${periodoTxt}</div>
-    </div>
-
-    <table class="conc-table">
-      <thead>
-        <tr>
-          <th>Fecha</th>
-          <th>Tipo</th>
-          <th>N° Ref</th>
-          <th>Descripción</th>
-          <th class="right">Monto</th>
-          <th class="right">Saldo Corriente</th>
-        </tr>
-      </thead>
-      <tbody>${filasHTML}</tbody>
-    </table>
-
-    <div class="conc-resumen">
-      <div class="conc-res-box">
-        <div class="conc-res-label">Total Facturado</div>
-        <div class="conc-res-val azul">${fmtUSD(totalFacturado)}</div>
-      </div>
-      <div class="conc-res-box">
-        <div class="conc-res-label">Total Pagado</div>
-        <div class="conc-res-val verde">${fmtUSD(totalPagado)}</div>
-      </div>
-      <div class="conc-res-box" style="border-color:${saldoFinal > 0.01 ? '#fecdd3' : saldoFinal < -0.01 ? '#bbf7d0' : '#bae6fd'}">
-        <div class="conc-res-label">${saldoFinal > 0.01 ? 'Saldo a Pagar' : saldoFinal < -0.01 ? 'Saldo a Favor' : 'Saldo'}</div>
-        <div class="conc-res-val ${saldoFinal > 0.01 ? 'rojo' : saldoFinal < -0.01 ? 'verde' : 'azul'}">${fmtUSD(Math.abs(saldoFinal))}</div>
-      </div>
-    </div>
-
-    ${notaHTML}
-
-    <div class="conc-footer">
-      <div>
-        <div style="font-weight:600;color:#1a1a1a;margin-bottom:4px">DAL Miami Export LLC</div>
-        Este documento es un estado de cuenta informativo generado el ${hoyTxt}.
-      </div>
-      <div class="conc-firma">
-        <div class="conc-firma-line"></div>
-        <div style="color:#1a1a1a;font-weight:700">Diego Hernández</div>
-        <div style="color:#555;font-size:10px;text-transform:uppercase;letter-spacing:1px">Gerente Financiero</div>
-        <div style="color:#888;font-size:10px">DAL Miami Export LLC</div>
-      </div>
-    </div>
-  `;
+  const partes2=[
+    '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">',
+    '<title>Estado de Cuenta - ',cliente.nombre,'</title>',
+    '<'+'style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;color:#1a1a2e;background:#fff;padding:28px}@media print{body{padding:0}}</'+'style>',
+    '</head><body>',
+    '<div style="border-bottom:3px solid #E8202A;padding-bottom:16px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:flex-start">',
+    '<div><div style="font-size:20px;font-weight:900"><span style="color:#E8202A">DAL</span> MIAMI EXPORT LLC</div>',
+    '<div style="font-size:9px;color:#666;margin-top:5px;line-height:1.8">3901 SW 78th CT · Miami FL-33155 · EIN: 93-1412443<br>dalmiami9@gmail.com · +1 786-839-1403</div></div>',
+    '<div style="text-align:right"><div style="font-size:12px;font-weight:700;color:#E8202A">ESTADO DE CUENTA</div>',
+    '<div style="font-size:9px;color:#888;margin-top:4px;line-height:1.8">',hoyLargo,'<br>Período: ',periodo,'</div></div></div>',
+    '<div style="background:#f5f5f5;border-left:4px solid #E8202A;padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:18px">',
+    '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:2px">Cliente</div>',
+    '<div style="font-size:17px;font-weight:700">',cliente.nombre,'</div></div>',
+    '<table style="width:100%;border-collapse:collapse;margin-bottom:18px">',
+    '<thead><tr style="background:#1a1a2e;color:#fff">',
+    '<th style="padding:8px;text-align:left;font-size:9px">FECHA</th>',
+    '<th style="padding:8px;text-align:left;font-size:9px">TIPO</th>',
+    '<th style="padding:8px;text-align:left;font-size:9px">REF.</th>',
+    '<th style="padding:8px;text-align:left;font-size:9px">DESCRIPCIÓN</th>',
+    '<th style="padding:8px;text-align:right;font-size:9px">MONTO</th>',
+    '<th style="padding:8px;text-align:right;font-size:9px">SALDO</th>',
+    '</tr></thead><tbody>',filasHTML,'</tbody></table>',
+    '<div style="display:flex;gap:10px;margin-bottom:18px">',
+    '<div style="flex:1;border:1px solid #e0e0e8;border-radius:6px;padding:11px;text-align:center"><div style="font-size:8px;text-transform:uppercase;color:#888;margin-bottom:4px">Total Facturado</div><div style="font-size:13px;font-weight:700;color:#1A3CCC">',fmtUSD(totalF),'</div></div>',
+    '<div style="flex:1;border:1px solid #e0e0e8;border-radius:6px;padding:11px;text-align:center"><div style="font-size:8px;text-transform:uppercase;color:#888;margin-bottom:4px">Total Pagado</div><div style="font-size:13px;font-weight:700;color:#16a34a">',fmtUSD(totalP),'</div></div>',
+    '<div style="flex:1;border:1px solid #e0e0e8;border-radius:6px;padding:11px;text-align:center"><div style="font-size:8px;text-transform:uppercase;color:#888;margin-bottom:4px">',(saldoFinal>0.01?'Saldo a Pagar':saldoFinal<-0.01?'Saldo a Favor':'Saldo'),'</div>',
+    '<div style="font-size:13px;font-weight:700;color:',(saldoFinal>0.01?'#dc2626':saldoFinal<-0.01?'#16a34a':'#1A3CCC'),'">',fmtUSD(Math.abs(saldoFinal)),'</div></div>',
+    '</div>',
+    '<div style="background:',notaBg,';border-left:4px solid ',notaBorder,';padding:13px 16px;border-radius:0 6px 6px 0;margin-bottom:18px;font-size:11px;line-height:1.7">',notaTxt,'</div>',
+    '<div style="border-top:1px solid #e0e0e8;padding-top:12px;display:flex;justify-content:space-between;align-items:flex-end">',
+    '<div><div style="width:140px;border-bottom:1px solid #aaa;margin-bottom:4px;height:22px"></div>',
+    '<div style="font-weight:700;font-size:10px">Diego Hernández</div>',
+    '<div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:1px">Gerente Financiero · DAL Miami Export LLC</div></div>',
+    '<div style="text-align:right;font-size:8px;color:#aaa;line-height:1.8">',hoyLargo,'<br>EIN: 93-1412443</div></div>',
+    '</body></html>'
+  ];
+  const html2=partes2.join('');
+  const blob=new Blob([html2],{type:'text/html'});
+  const url=URL.createObjectURL(blob);
+  const win=window.open(url,'_blank');
+  if(!win){toast('Permite ventanas emergentes en Safari','error');}
+  else{setTimeout(()=>{try{win.print();}catch(e){}},1200);}
+  setTimeout(()=>URL.revokeObjectURL(url),20000);
 }
 
-// ═══ INIT ═══
+
+// ═══ BADGES ═══
 function updateBadges() {
   document.getElementById('badge-clientes').textContent = clientes.length;
   document.getElementById('badge-mercancias').textContent = mercancias.length;
@@ -2510,6 +1135,7 @@ updateDate();
 setInterval(updateDate, 60000);
 updateBadges();
 renderDashboard();
+
 </script>
 </body>
 </html>
