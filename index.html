@@ -1040,12 +1040,14 @@ function compartirConciliacion() {
   const totalFav=facturasCliente.reduce((s,f)=>s+(parseFloat(f.arrastre)||0),0);
   const totalP=pagosCliente.reduce((s,p)=>s+p.monto,0);
   const saldoFinal=totalF-totalFav-totalP;
-  const fmtP=d=>{if(!d)return '—';const [y,m,day]=d.split('-');return day+'/'+m+'/'+y;};
+  const fmtP=d=>{if(!d)return '—';const[y,m,day]=d.split('-');return day+'/'+m+'/'+y;};
   const periodo=desde||hasta?fmtP(desde)+' — '+fmtP(hasta):'Todos los movimientos';
 
   const filasHTML=filas.map((mv,i)=>{
-    const tipo=mv.tipo==='factura'?'<span style="background:#fff3cd;color:#92600a;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:700">FACTURA</span>'
-      :mv.tipo==='pago'?'<span style="background:#d1fae5;color:#065f46;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:700">PAGO</span>'
+    const tipo=mv.tipo==='factura'
+      ?'<span style="background:#fff3cd;color:#92600a;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:700">FACTURA</span>'
+      :mv.tipo==='pago'
+      ?'<span style="background:#d1fae5;color:#065f46;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:700">PAGO</span>'
       :'<span style="background:#dbeafe;color:#1e40af;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:700">FAVOR</span>';
     const mColor=mv.monto>0?'#dc2626':'#16a34a';
     const sColor=mv.sc>0.01?'#dc2626':mv.sc<-0.01?'#16a34a':'#888';
@@ -1057,21 +1059,22 @@ function compartirConciliacion() {
       +'<td style="padding:7px 8px;border-bottom:1px solid #eee;font-size:10px;font-family:monospace">#'+mv.num+'</td>'
       +'<td style="padding:7px 8px;border-bottom:1px solid #eee;font-size:11px"><strong>'+mv.desc+'</strong>'+(mv.mer?'<br><small style="color:#aaa">'+mv.mer+'</small>':'')+'</td>'
       +'<td style="padding:7px 8px;border-bottom:1px solid #eee;text-align:right;font-weight:700;color:'+mColor+';font-size:11px">'+mTxt+'</td>'
-      +'<td style="padding:7px 8px;border-bottom:1px solid #eee;text-align:right;font-weight:700;color:'+sColor+';font-size:11px">'+fmtUSD(mv.sc)+'</td></tr>';
+      +'<td style="padding:7px 8px;border-bottom:1px solid #eee;text-align:right;font-weight:700;color:'+sColor+';font-size:11px">'+fmtUSD(mv.sc)+'</td>'
+      +'</tr>';
   }).join('')||'<tr><td colspan="6" style="padding:28px;text-align:center;color:#aaa">Sin movimientos en el período</td></tr>';
 
   const notaBg=saldoFinal>0.01?'#fff1f2':saldoFinal<-0.01?'#f0fdf4':'#f0f9ff';
   const notaBorder=saldoFinal>0.01?'#E8202A':saldoFinal<-0.01?'#16a34a':'#1A3CCC';
   const notaTxt=saldoFinal>0.01
-    ?'<strong>Saldo Pendiente:</strong> '+cliente.nombre+' presenta un saldo de <strong>'+fmtUSD(saldoFinal)+'</strong>. Le agradecemos gestionar su pago.'
+    ?'Estimado cliente <strong>'+cliente.nombre+'</strong>, presenta un saldo pendiente de <strong>'+fmtUSD(saldoFinal)+'</strong>. Le agradecemos gestionar su pago a la brevedad.'
     :saldoFinal<-0.01
-    ?'<strong>Saldo a Favor:</strong> '+cliente.nombre+' tiene crédito de <strong>'+fmtUSD(Math.abs(saldoFinal))+'</strong> para su próxima factura.'
-    :'<strong>Cuenta al Día:</strong> '+cliente.nombre+' no presenta saldos pendientes.';
+    ?'Estimado cliente <strong>'+cliente.nombre+'</strong>, tiene un crédito de <strong>'+fmtUSD(Math.abs(saldoFinal))+'</strong> que se aplicará en su próxima factura.'
+    :'Estimado cliente <strong>'+cliente.nombre+'</strong>, su cuenta se encuentra completamente al día.';
 
-  const partes2=[
+  const partes=[
     '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">',
     '<title>Estado de Cuenta - ',cliente.nombre,'</title>',
-    '<'+'style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;color:#1a1a2e;background:#fff;padding:28px}@media print{body{padding:0}}</'+'style>',
+    '<'+'style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;color:#1a1a2e;background:#fff;padding:28px}@media print{body{padding:0}}<'+'/style>',
     '</head><body>',
     '<div style="border-bottom:3px solid #E8202A;padding-bottom:16px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:flex-start">',
     '<div><div style="font-size:20px;font-weight:900"><span style="color:#E8202A">DAL</span> MIAMI EXPORT LLC</div>',
@@ -1091,9 +1094,14 @@ function compartirConciliacion() {
     '<th style="padding:8px;text-align:right;font-size:9px">SALDO</th>',
     '</tr></thead><tbody>',filasHTML,'</tbody></table>',
     '<div style="display:flex;gap:10px;margin-bottom:18px">',
-    '<div style="flex:1;border:1px solid #e0e0e8;border-radius:6px;padding:11px;text-align:center"><div style="font-size:8px;text-transform:uppercase;color:#888;margin-bottom:4px">Total Facturado</div><div style="font-size:13px;font-weight:700;color:#1A3CCC">',fmtUSD(totalF),'</div></div>',
-    '<div style="flex:1;border:1px solid #e0e0e8;border-radius:6px;padding:11px;text-align:center"><div style="font-size:8px;text-transform:uppercase;color:#888;margin-bottom:4px">Total Pagado</div><div style="font-size:13px;font-weight:700;color:#16a34a">',fmtUSD(totalP),'</div></div>',
-    '<div style="flex:1;border:1px solid #e0e0e8;border-radius:6px;padding:11px;text-align:center"><div style="font-size:8px;text-transform:uppercase;color:#888;margin-bottom:4px">',(saldoFinal>0.01?'Saldo a Pagar':saldoFinal<-0.01?'Saldo a Favor':'Saldo'),'</div>',
+    '<div style="flex:1;border:1px solid #e0e0e8;border-radius:6px;padding:11px;text-align:center">',
+    '<div style="font-size:8px;text-transform:uppercase;color:#888;margin-bottom:4px">Total Facturado</div>',
+    '<div style="font-size:13px;font-weight:700;color:#1A3CCC">',fmtUSD(totalF),'</div></div>',
+    '<div style="flex:1;border:1px solid #e0e0e8;border-radius:6px;padding:11px;text-align:center">',
+    '<div style="font-size:8px;text-transform:uppercase;color:#888;margin-bottom:4px">Total Pagado</div>',
+    '<div style="font-size:13px;font-weight:700;color:#16a34a">',fmtUSD(totalP),'</div></div>',
+    '<div style="flex:1;border:1px solid #e0e0e8;border-radius:6px;padding:11px;text-align:center">',
+    '<div style="font-size:8px;text-transform:uppercase;color:#888;margin-bottom:4px">',(saldoFinal>0.01?'Saldo a Pagar':saldoFinal<-0.01?'Saldo a Favor':'Saldo'),'</div>',
     '<div style="font-size:13px;font-weight:700;color:',(saldoFinal>0.01?'#dc2626':saldoFinal<-0.01?'#16a34a':'#1A3CCC'),'">',fmtUSD(Math.abs(saldoFinal)),'</div></div>',
     '</div>',
     '<div style="background:',notaBg,';border-left:4px solid ',notaBorder,';padding:13px 16px;border-radius:0 6px 6px 0;margin-bottom:18px;font-size:11px;line-height:1.7">',notaTxt,'</div>',
@@ -1104,13 +1112,19 @@ function compartirConciliacion() {
     '<div style="text-align:right;font-size:8px;color:#aaa;line-height:1.8">',hoyLargo,'<br>EIN: 93-1412443</div></div>',
     '</body></html>'
   ];
-  const html2=partes2.join('');
-  const blob=new Blob([html2],{type:'text/html'});
-  const url=URL.createObjectURL(blob);
-  const win=window.open(url,'_blank');
-  if(!win){toast('Permite ventanas emergentes en Safari','error');}
-  else{setTimeout(()=>{try{win.print();}catch(e){}},1200);}
-  setTimeout(()=>URL.revokeObjectURL(url),20000);
+
+  const html = partes.join('');
+
+  // Use <a> download trick - works reliably in Safari without popup blocker issues
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 10000);
 }
 
 
