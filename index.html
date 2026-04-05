@@ -1037,7 +1037,7 @@ function _abrirVentanaConciliacion(clienteId, desde, hasta) {
   const movs=[];
   facturasCliente.forEach(f=>{
     const m=mercancias.find(x=>x.id===f.mercanciaId);
-    movs.push({fecha:f.fecha,tipo:'factura',monto:parseFloat(f.deuda)-(parseFloat(f.arrastre)||0),num:f.numero,desc:m?m.nombre:'—',mer:m?(m.descripcion||''):''});
+    movs.push({fecha:f.fecha,tipo:'factura',monto:parseFloat(f.deuda),num:f.numero,desc:m?m.nombre:'—',mer:m?(m.descripcion||''):''});
   });
   pagosCliente.forEach(p=>{
     const f=facturas.find(x=>x.id===p.facturaId);
@@ -1049,9 +1049,8 @@ function _abrirVentanaConciliacion(clienteId, desde, hasta) {
   const filas=movs.map(mv=>{sc+=mv.monto;return Object.assign({},mv,{sc:sc});});
 
   const totalF=facturasCliente.reduce((s,f)=>s+parseFloat(f.deuda),0);
-  const totalFav=facturasCliente.reduce((s,f)=>s+(parseFloat(f.arrastre)||0),0);
   const totalP=pagosCliente.reduce((s,p)=>s+p.monto,0);
-  const saldoFinal=totalF-totalFav-totalP;
+  const saldoFinal=facturasCliente.reduce((s,f)=>s+getSaldo(f.id),0);
   const periodo='Todos los movimientos';
 
   const filasHTML=filas.map((mv,i)=>{
@@ -1147,7 +1146,7 @@ function compartirConciliacion() {
   const movs=[];
   facturasCliente.forEach(f=>{
     const m=mercancias.find(x=>x.id===f.mercanciaId);
-    movs.push({fecha:f.fecha,tipo:'factura',monto:parseFloat(f.deuda)-(parseFloat(f.arrastre)||0),num:f.numero,desc:m?m.nombre:'—',mer:m?(m.descripcion||''):''});
+    movs.push({fecha:f.fecha,tipo:'factura',monto:parseFloat(f.deuda),num:f.numero,desc:m?m.nombre:'—',mer:m?(m.descripcion||''):''});
   });
   pagosCliente.forEach(p=>{
     const f=facturas.find(x=>x.id===p.facturaId);
@@ -1159,9 +1158,8 @@ function compartirConciliacion() {
   const filas=movs.map(mv=>{sc+=mv.monto;return Object.assign({},mv,{sc:sc});});
 
   const totalF=facturasCliente.reduce((s,f)=>s+parseFloat(f.deuda),0);
-  const totalFav=facturasCliente.reduce((s,f)=>s+(parseFloat(f.arrastre)||0),0);
   const totalP=pagosCliente.reduce((s,p)=>s+p.monto,0);
-  const saldoFinal=totalF-totalFav-totalP;
+  const saldoFinal=facturasCliente.reduce((s,f)=>s+getSaldo(f.id),0);
   const fmtP=d=>{if(!d)return '—';const[y,m,day]=d.split('-');return day+'/'+m+'/'+y;};
   const periodo=desde||hasta?fmtP(desde)+' — '+fmtP(hasta):'Todos los movimientos';
 
